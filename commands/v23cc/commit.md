@@ -77,6 +77,14 @@ if [ -n "$ONLY_MSG" ]; then
   echo "  $RESULT"
   echo ""
 else
-  git commit -m "$RESULT"
+  if git commit -m "$RESULT"; then
+    echo ""
+    echo "Committed:"
+    git log --oneline -1
+  else
+    echo ""
+    echo "Commit failed."
+    exit 1
+  fi
 fi
 ```
