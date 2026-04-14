@@ -5,13 +5,13 @@ allowed-tools: Bash
 model: haiku
 ---
 
-Generate a single-line git commit message from staged (or unstaged) changes using the local LLM.
+Generate a single-line git commit message from staged (or unstaged) changes using the local LLM, then commit.
 
-**Usage:** `/v23cc:commit [--max 72] [--no-prefix]`
+**Usage:** `/v23cc:commit [--max 72] [--no-prefix] [--only-msg] [--all]`
 
 Arguments: $ARGUMENTS
 
-Parse the arguments: optional `--max <number>` (default: `72`), optional `--no-prefix` flag (default: conventional prefix style).
+Parse the arguments: optional `--max <number>` (default: `72`), optional `--no-prefix` flag, optional `--only-msg` flag (print message only, no commit), optional `--all` flag (run `git add *` before committing).
 
 Run the following bash script via the Bash tool:
 
@@ -22,9 +22,17 @@ set -euo pipefail
 ARGS="$ARGUMENTS"
 MAX="72"
 NO_PREFIX=""
+ONLY_MSG=""
+ADD_ALL=""
 
 [[ "$ARGS" == *"--no-prefix"* ]] && NO_PREFIX="1"
+[[ "$ARGS" == *"--only-msg"* ]] && ONLY_MSG="1"
+[[ "$ARGS" == *"--all"* ]] && ADD_ALL="1"
 [[ "$ARGS" =~ --max[[:space:]]+([0-9]+) ]] && MAX="${BASH_REMATCH[1]}"
+
+if [ -n "$ADD_ALL" ]; then
+  git add *
+fi
 
 if [ -n "$NO_PREFIX" ]; then
   STYLE_RULES="- No conventional prefix (no fix:, feat:, chore:, etc.)
@@ -62,9 +70,13 @@ $DIFF
 
 Output the commit message only — no explanation, no quotes, no extra lines." | ~/.local/bin/call_local_llm.py)
 
-echo ""
-echo "Suggested commit message:"
-echo ""
-echo "  $RESULT"
-echo ""
+if [ -n "$ONLY_MSG" ]; then
+  echo ""
+  echo "Suggested commit message:"
+  echo ""
+  echo "  $RESULT"
+  echo ""
+else
+  git commit -m "$RESULT"
+fi
 ```
