@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-ARGS="${*}"
+ARGS="${*:-}"
 MAX="72"
 NO_PREFIX=""
 ONLY_MSG=""

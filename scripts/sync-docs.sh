@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-ARGS="${*}"
+ARGS="${*:-}"
 MAX_LINES="100"
 KEEP_SECTION=""
 [[ "$ARGS" =~ --lines[[:space:]]+([0-9]+) ]] && MAX_LINES="${BASH_REMATCH[1]}"
