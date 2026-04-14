@@ -1,0 +1,36 @@
+{
+  "name": "v23cc",
+  "version": "0.1.0",
+  "description": "A lightweight Claude Code workflow system by jsveron23",
+  "keywords": ["claude-code", "workflow", "context-engineering", "ai-coding"],
+  "author": "jsveron23",
+  "license": "MIT",
+  "bin": {
+    "v23cc": "./bin/install.js"
+  },
+  "files": [
+    "bin/",
+    "commands/",
+    "docs/",
+    "README.md"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/jsveron23/v23cc"
+  },
+  "prettier": {
+    "semi": true,
+    "singleQuote": true,
+    "tabWidth": 2,
+    "arrowParens": "always",
+    "trailingComma": "es5",
+    "bracketSpacing": true,
+    "proseWrap": "always"
+  },
+  "devDependencies": {
+    "prettier": "^3"
+  }
+}
