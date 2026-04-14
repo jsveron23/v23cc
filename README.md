@@ -30,7 +30,7 @@ bunx v23cc@latest --local
 |---------|-------------|
 | `/v23cc:model [list\|use\|add\|remove]` | Manage local LLM model presets |
 | `/v23cc:youtube <URL> [--lang ko] [--percent 20]` | Summarize a YouTube video using local LLM |
-| `/v23cc:commit [--max 72] [--no-prefix]` | Generate a git commit message using local LLM |
+| `/v23cc:commit [--max 72] [--no-prefix] [--only-msg] [--all]` | Generate and commit using local LLM |
 | `/v23cc:sync-docs` | Update README.md and CLAUDE.md using local LLM |
 
 ## Workflow
@@ -48,11 +48,17 @@ bunx v23cc@latest --local
 # Summarize in English, shorter output
 /v23cc:youtube https://youtube.com/watch?v=... --lang en --percent 10
 
-# Generate a commit message (conventional prefix style by default)
+# Generate and commit (conventional prefix style by default)
 /v23cc:commit
 
-# Generate a commit message without conventional prefix
+# Commit without conventional prefix
 /v23cc:commit --no-prefix
+
+# Print message only, no commit
+/v23cc:commit --only-msg
+
+# Stage all files then commit
+/v23cc:commit --all
 ```
 
 ## Local LLM (optional)
