@@ -6,9 +6,9 @@ Instead of asking Claude to summarize a video or draft a commit message (burning
 
 **What's included:**
 
+- `/v23cc:model` — manage which local model preset is active
 - `/v23cc:youtube` — fetch subtitles from a YouTube video and summarize them in any language
 - `/v23cc:commit` — generate a git commit message from staged changes
-- `/v23cc:model` — manage which local model preset is active
 
 ## Install
 
@@ -134,14 +134,6 @@ except urllib.error.URLError:
     print(f"Local server (port {port}) is not running.", file=sys.stderr)
 except Exception as e:
     print(f"Error: {e}", file=sys.stderr)
-```
-
-```bash
-# Example usage
-echo "Summarize this file" | python llm.py
-IMAGE_PATH=screenshot.png echo "What's in this image?" | python llm.py
-MAX_TOKENS=500 echo "Short answer only" | python llm.py
-MODEL=mlx-community/llama-3-8b-4bit echo "Use a different model" | python llm.py
 ```
 
 ## Uninstall
