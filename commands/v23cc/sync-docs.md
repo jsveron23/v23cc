@@ -2,9 +2,8 @@
 name: v23cc:sync-docs
 description: Update README.md and CLAUDE.md using the local LLM
 allowed-tools: Bash
+model: haiku
 ---
-
-Update README.md and CLAUDE.md by gathering deep project context and regenerating both files using the local LLM.
 
 **Usage:** `/v23cc:sync-docs [--lines 100] [--keep "section name"]`
 
