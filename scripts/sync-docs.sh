@@ -1,7 +1,7 @@
 #!/bin/bash
 set -euo pipefail
 
-ARGS="${*}"
+ARGS="${*:-}"
 MAX_LINES="100"
 KEEP_SECTION=""
 [[ "$ARGS" =~ --lines[[:space:]]+([0-9]+) ]] && MAX_LINES="${BASH_REMATCH[1]}"
@@ -104,8 +104,15 @@ Instructions:
 - Output the full README.md content only — no explanation, no markdown code fences"
 fi
 
-printf '%s' "$README_PROMPT" | MAX_TOKENS=4000 ~/.v23cc/call_local_llm.py > "$README_FILE"
-echo "  Done → README.md"
+README_TMP=$(mktemp)
+if printf '%s' "$README_PROMPT" | MAX_TOKENS=4000 ~/.v23cc/call_local_llm.py > "$README_TMP" && [ -s "$README_TMP" ]; then
+  mv "$README_TMP" "$README_FILE"
+  echo "  Done → README.md"
+else
+  rm -f "$README_TMP"
+  echo "Error: LLM failed for README.md — file left unchanged." >&2
+  exit 1
+fi
 
 echo "Updating CLAUDE.md..."
 
@@ -124,8 +131,15 @@ $KEEP_RULE
 - Do not add fabricated details — only use what the source code shows
 - Output the full updated CLAUDE.md content only — no explanation, no markdown code fences"
 
-printf '%s' "$CLAUDE_PROMPT" | MAX_TOKENS=3000 ~/.v23cc/call_local_llm.py > "$CLAUDE_FILE"
-echo "  Done → CLAUDE.md"
+CLAUDE_TMP=$(mktemp)
+if printf '%s' "$CLAUDE_PROMPT" | MAX_TOKENS=3000 ~/.v23cc/call_local_llm.py > "$CLAUDE_TMP" && [ -s "$CLAUDE_TMP" ]; then
+  mv "$CLAUDE_TMP" "$CLAUDE_FILE"
+  echo "  Done → CLAUDE.md"
+else
+  rm -f "$CLAUDE_TMP"
+  echo "Error: LLM failed for CLAUDE.md — file left unchanged." >&2
+  exit 1
+fi
 
 echo ""
 echo "Both docs updated. Review with: git diff README.md CLAUDE.md"

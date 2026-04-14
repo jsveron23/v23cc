@@ -94,7 +94,10 @@ function registerHook() {
   if (fs.existsSync(settingsPath)) {
     try {
       settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-    } catch (e) {}
+    } catch (e) {
+      console.error(`  ⚠ ${settingsPath} contains invalid JSON — skipping hook registration.`);
+      return;
+    }
   }
   if (!settings.hooks) settings.hooks = {};
   if (!settings.hooks.SessionStart) settings.hooks.SessionStart = [];
@@ -133,7 +136,7 @@ function unregisterHook() {
 
 function uninstallScripts() {
   if (!fs.existsSync(V23CC_BIN)) return;
-  const entries = fs.readdirSync(SCRIPTS_SRC).filter((f) => f.endsWith('.sh'));
+  const entries = fs.readdirSync(V23CC_BIN).filter((f) => f.endsWith('.sh'));
   for (const file of entries) {
     const dest = path.join(V23CC_BIN, file);
     if (fs.existsSync(dest)) {
