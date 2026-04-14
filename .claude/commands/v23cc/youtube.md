@@ -7,11 +7,11 @@ model: haiku
 
 Summarize a YouTube video using subtitles (or Whisper fallback) and the local LLM.
 
-**Usage:** `/v23cc:youtube <URL> [language]`
+**Usage:** `/v23cc:youtube <URL> [--lang ko] [--percent 20]`
 
 Arguments: $ARGUMENTS
 
-Parse the arguments: first token is the URL, second (optional) is the language code (default: `ko`).
+Parse the arguments: first token is the URL, then optional `--lang <code>` (default: `ko`) and `--percent <number>` (default: `20`).
 
 Run the following bash script via the Bash tool:
 
@@ -20,7 +20,19 @@ Run the following bash script via the Bash tool:
 set -euo pipefail
 
 URL="$1"
-LANG="${2:-ko}"
+shift
+
+LANG="ko"
+PERCENT="20"
+
+while [[ $# -gt 0 ]]; do
+  case "$1" in
+    --lang) LANG="$2"; shift 2 ;;
+    --percent) PERCENT="$2"; shift 2 ;;
+    *) shift ;;
+  esac
+done
+
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 TMPDIR_YT="${TMPDIR:-/tmp}/youtube_summary_$$"
 mkdir -p "$TMPDIR_YT"
@@ -58,7 +70,7 @@ echo "Title: $TITLE"
 
 TRANSCRIPT=""
 echo "Trying subtitles ($LANG)..."
-yt-dlp --write-auto-sub --sub-lang "$LANG" --skip-download --sub-format vtt \
+yt-dlp --write-auto-sub --sub-lang "$LANG" --skip-download --sub-format vtt --no-progress \
   -o "$TMPDIR_YT/sub" "$URL" 2>/dev/null
 
 SUB_FILE=$(find "$TMPDIR_YT" -name "*.vtt" 2>/dev/null | head -1)
@@ -76,7 +88,7 @@ fi
 
 if [ -z "$TRANSCRIPT" ] && [ "$LANG" != "en" ]; then
   echo "No $LANG subtitles. Trying English..."
-  yt-dlp --write-auto-sub --sub-lang en --skip-download --sub-format vtt \
+  yt-dlp --write-auto-sub --sub-lang en --skip-download --sub-format vtt --no-progress \
     -o "$TMPDIR_YT/sub_en" "$URL" 2>/dev/null
   SUB_FILE=$(find "$TMPDIR_YT" -name "*.vtt" 2>/dev/null | head -1)
   if [ -n "$SUB_FILE" ] && [ -f "$SUB_FILE" ]; then
@@ -94,7 +106,7 @@ if [ -z "$TRANSCRIPT" ]; then
     echo "Error: mlx_whisper is not installed."
     exit 1
   fi
-  yt-dlp -x --audio-format wav -o "$TMPDIR_YT/audio.%(ext)s" "$URL" 2>/dev/null
+  yt-dlp -x --audio-format wav --no-progress -o "$TMPDIR_YT/audio.%(ext)s" "$URL" 2>/dev/null
   WAV_FILE=$(find "$TMPDIR_YT" -name "*.wav" 2>/dev/null | head -1)
   if [ -z "$WAV_FILE" ] || [ ! -f "$WAV_FILE" ]; then
     echo "Error: Failed to download audio."
@@ -133,7 +145,7 @@ Instructions:
 - Lead with the core topic and conclusion
 - Organize key points as a structured list with headers
 - Include notable quotes or figures if present
-- Keep summary under 20%% of original length
+- Keep summary under ${PERCENT}%% of original length
 - Write entirely in $LANG_NAME
 - No preamble." | MAX_TOKENS=4000 ~/.local/bin/call_local_llm.py)
 
@@ -152,4 +164,4 @@ echo ""
 echo "Saved: research/${TIMESTAMP}-youtube-${SLUG}.md"
 ```
 
-Pass the URL and language as positional arguments `$1` and `$2` when running the script.
+Pass the URL as `$1` and remaining flags as subsequent args when running the script.

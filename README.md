@@ -21,33 +21,25 @@ bunx v23cc@latest --local
 
 | Command | Description |
 |---------|-------------|
-| `/plan [task]` | Break down a task into atomic plans |
-| `/execute` | Execute plans using subagents (keeps context clean) |
-| `/review [file?]` | Code style & quality review |
-| `/status` | Show current plan state |
+| `/v23cc:model [list\|use\|add\|remove]` | Manage local LLM model presets |
+| `/v23cc:youtube <URL> [--lang ko] [--percent 20]` | Summarize a YouTube video using local LLM |
 
 ## Workflow
 
 ```
-/plan add user authentication
-  → creates .v23cc/PLAN.md
+# Add a local LLM model preset
+/v23cc:model add gemma mlx-community/gemma-4-e4b-it-4bit 9000
 
-/status
-  → shows waves and tasks
+# Switch active model
+/v23cc:model use gemma
 
-/execute
-  → runs each task in a fresh subagent context
-  → commits after each task
+# Summarize a YouTube video in Korean (default)
+/v23cc:youtube https://youtube.com/watch?v=...
 
-/review
-  → reviews the diff
+# Summarize in English, shorter output
+/v23cc:youtube https://youtube.com/watch?v=... --lang en --percent 10
+
 ```
-
-## Why subagents?
-
-Claude's context window fills up as it works. When context fills, quality drops ("context rot").
-
-v23cc runs each task in a fresh subagent context via Claude Code's Task tool — so the main session stays light and fast, no matter how much work gets done.
 
 ## Local LLM (optional)
 
@@ -146,6 +138,10 @@ MODEL=mlx-community/llama-3-8b-4bit echo "Use a different model" | python llm.py
 bunx v23cc@latest --global --uninstall
 bunx v23cc@latest --local --uninstall
 ```
+
+## Legal
+
+This tool uses [yt-dlp](https://github.com/yt-dlp/yt-dlp) to download subtitles from YouTube. Users are responsible for complying with YouTube's Terms of Service and applicable copyright laws in their jurisdiction.
 
 ## License
 
