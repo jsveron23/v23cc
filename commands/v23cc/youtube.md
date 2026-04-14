@@ -152,16 +152,17 @@ Instructions:
 echo "$RESULT"
 
 RESEARCH_DIR="$REPO_ROOT/research"
-mkdir -p "$RESEARCH_DIR"
-TIMESTAMP=$(date +"%Y%m%d-%H%M%S")
+DATE=$(date +"%Y%m%d")
+TIME=$(date +"%H%M%S")
+mkdir -p "$RESEARCH_DIR/$DATE"
 SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//' | cut -c1-60)
-OUTFILE="$RESEARCH_DIR/${TIMESTAMP}-youtube-${SLUG}.md"
+OUTFILE="$RESEARCH_DIR/$DATE/${TIME}-youtube-${SLUG}.md"
 
 printf '# %s\n\n> Source: %s\n> Language: %s\n> Mode: youtube\n\n%s\n' \
   "$TITLE" "$URL" "$LANG_NAME" "$RESULT" > "$OUTFILE"
 
 echo ""
-echo "Saved: research/${TIMESTAMP}-youtube-${SLUG}.md"
+echo "Saved: research/$DATE/${TIME}-youtube-${SLUG}.md"
 ```
 
 Pass the URL as `$1` and remaining flags as subsequent args when running the script.
