@@ -24,6 +24,7 @@
 
 ## Codebase Notes
 
+- See README.md for installation and usage instructions.
 - Prettier configured: semi=true, singleQuote=true, tabWidth=2
 - Node >=18.0.0 required
 - License: MIT

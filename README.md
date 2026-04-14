@@ -68,6 +68,32 @@ npx v23cc@latest --local
 /v23cc:commit --all
 ```
 
+## Direct shell usage
+
+When your Claude token budget is low, run the scripts directly:
+
+```bash
+# Manage model presets
+bash ~/.v23cc/bin/model.sh list
+bash ~/.v23cc/bin/model.sh use gemma
+bash ~/.v23cc/bin/model.sh add gemma mlx-community/gemma-4-e4b-it-4bit 9000
+bash ~/.v23cc/bin/model.sh remove gemma
+
+# Summarize a YouTube video
+bash ~/.v23cc/bin/youtube.sh https://youtube.com/watch?v=...
+bash ~/.v23cc/bin/youtube.sh https://youtube.com/watch?v=... --lang en --percent 10
+
+# Generate and commit
+bash ~/.v23cc/bin/commit.sh
+bash ~/.v23cc/bin/commit.sh --no-prefix
+bash ~/.v23cc/bin/commit.sh --only-msg
+bash ~/.v23cc/bin/commit.sh --all
+
+# Update README.md and CLAUDE.md
+bash ~/.v23cc/bin/sync-docs.sh
+bash ~/.v23cc/bin/sync-docs.sh --lines 80 --keep "Architecture"
+```
+
 ## Uninstall
 
 ```bash
