@@ -94,7 +94,10 @@ function registerHook() {
   if (fs.existsSync(settingsPath)) {
     try {
       settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
-    } catch (e) {}
+    } catch (e) {
+      console.error(`  ⚠ ${settingsPath} contains invalid JSON — skipping hook registration.`);
+      return;
+    }
   }
   if (!settings.hooks) settings.hooks = {};
   if (!settings.hooks.SessionStart) settings.hooks.SessionStart = [];
