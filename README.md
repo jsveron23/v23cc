@@ -15,13 +15,13 @@ Instead of asking Claude to summarize a video or draft a commit message (burning
 
 ```bash
 # Interactive (prompts global or local)
-bunx v23cc@latest
+npx v23cc@latest
 
 # Global (works in all projects)
-bunx v23cc@latest --global
+npx v23cc@latest --global
 
 # Local (current project only)
-bunx v23cc@latest --local
+npx v23cc@latest --local
 ```
 
 ## Commands
@@ -147,8 +147,8 @@ except Exception as e:
 ## Uninstall
 
 ```bash
-bunx v23cc@latest --global --uninstall
-bunx v23cc@latest --local --uninstall
+npx v23cc@latest --global --uninstall
+npx v23cc@latest --local --uninstall
 ```
 
 ## Legal
