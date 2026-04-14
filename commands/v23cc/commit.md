@@ -19,16 +19,12 @@ Run the following bash script via the Bash tool:
 #!/bin/bash
 set -euo pipefail
 
+ARGS="$ARGUMENTS"
 MAX="72"
 NO_PREFIX=""
 
-while [[ $# -gt 0 ]]; do
-  case "$1" in
-    --max) MAX="$2"; shift 2 ;;
-    --no-prefix) NO_PREFIX="1"; shift ;;
-    *) shift ;;
-  esac
-done
+[[ "$ARGS" == *"--no-prefix"* ]] && NO_PREFIX="1"
+[[ "$ARGS" =~ --max[[:space:]]+([0-9]+) ]] && MAX="${BASH_REMATCH[1]}"
 
 if [ -n "$NO_PREFIX" ]; then
   STYLE_RULES="- No conventional prefix (no fix:, feat:, chore:, etc.)

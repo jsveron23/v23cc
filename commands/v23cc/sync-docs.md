@@ -76,9 +76,6 @@ CONFIGS+=$(read_if_exists "pom.xml")
 CONFIGS+=$(read_if_exists "Makefile")
 CONFIGS+=$(read_if_exists "CMakeLists.txt")
 
-CURRENT_README=$(cat "$README_FILE" 2>/dev/null || echo "(not found)")
-CURRENT_CLAUDE=$(cat "$CLAUDE_FILE" 2>/dev/null || echo "(not found)")
-
 CONTEXT="=== File tree ===
 $TREE
 
@@ -87,20 +84,33 @@ $CONFIGS"
 # --- Update README.md ---
 echo "Updating README.md..."
 
-README=$(printf '%s' "You are updating a project's README.md based on its current source code.
+if [ -f "$README_FILE" ]; then
+  README_PROMPT="You are updating a project's README.md based on its current source code.
 
 $CONTEXT
 
 === Current README.md ===
-$CURRENT_README
+$(cat "$README_FILE")
 
 Instructions:
 - Human-facing documentation
 - Explain what the project does and how to run it
 - Keep the existing structure; update only what is outdated or missing
 - Do not add fabricated details — only use what the source code shows
-- Output the full updated README.md content only — no explanation, no markdown code fences" \
-  | MAX_TOKENS=4000 ~/.local/bin/call_local_llm.py)
+- Output the full updated README.md content only — no explanation, no markdown code fences"
+else
+  README_PROMPT="You are creating a README.md for a new project based on its source code.
+
+$CONTEXT
+
+Instructions:
+- Human-facing documentation
+- Explain what the project does, how to install it, and how to run it
+- Do not add fabricated details — only use what the source code shows
+- Output the full README.md content only — no explanation, no markdown code fences"
+fi
+
+README=$(printf '%s' "$README_PROMPT" | MAX_TOKENS=4000 ~/.local/bin/call_local_llm.py)
 
 echo "$README" > "$README_FILE"
 echo "  Done → README.md"
@@ -108,12 +118,13 @@ echo "  Done → README.md"
 # --- Update CLAUDE.md ---
 echo "Updating CLAUDE.md..."
 
-CLAUDE=$(printf '%s' "You are updating a project's CLAUDE.md (AI-facing docs) based on its current source code.
+if [ -f "$CLAUDE_FILE" ]; then
+  CLAUDE_PROMPT="You are updating a project's CLAUDE.md (AI-facing docs) based on its current source code.
 
 $CONTEXT
 
 === Current CLAUDE.md ===
-$CURRENT_CLAUDE
+$(cat "$CLAUDE_FILE")
 
 Instructions:
 - AI-facing documentation only — keep it under 100 lines
@@ -121,8 +132,21 @@ Instructions:
 - Link to README.md instead of duplicating what is already there
 - Only update the Project Overview, Architecture, and Commands sections if they are outdated
 - Do not add fabricated details — only use what the source code shows
-- Output the full updated CLAUDE.md content only — no explanation, no markdown code fences" \
-  | MAX_TOKENS=3000 ~/.local/bin/call_local_llm.py)
+- Output the full updated CLAUDE.md content only — no explanation, no markdown code fences"
+else
+  CLAUDE_PROMPT="You are creating a CLAUDE.md (AI-facing docs) for a new project based on its source code.
+
+$CONTEXT
+
+Instructions:
+- AI-facing documentation only — keep it under 100 lines
+- Include: Project Overview, Architecture summary, key Commands to run
+- Link to README.md instead of duplicating what is already there
+- Do not add fabricated details — only use what the source code shows
+- Output the full CLAUDE.md content only — no explanation, no markdown code fences"
+fi
+
+CLAUDE=$(printf '%s' "$CLAUDE_PROMPT" | MAX_TOKENS=3000 ~/.local/bin/call_local_llm.py)
 
 echo "$CLAUDE" > "$CLAUDE_FILE"
 echo "  Done → CLAUDE.md"
