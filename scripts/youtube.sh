@@ -117,7 +117,7 @@ fi
 CHAR_COUNT=${#TRANSCRIPT}
 if [ "$CHAR_COUNT" -gt 12000 ]; then
   echo "Transcript is long ($CHAR_COUNT chars). Truncating to fit context window..."
-  TRANSCRIPT=$(echo "$TRANSCRIPT" | head -c 12000 2>/dev/null)
+  TRANSCRIPT=$(echo "$TRANSCRIPT" | cut -c1-12000)
 fi
 
 echo "Summarizing with LLM..."
