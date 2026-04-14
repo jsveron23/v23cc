@@ -12,7 +12,7 @@
 
 - **Command Format**: Markdown files in `/commands/v23cc/` define slash commands in Claude Code format
 - **Installer**: `bin/install.js` copies commands to `~/.claude/commands/` (global) or `./.claude/commands/` (local)
-- **Local LLM**: Commands pipe prompts to `~/.local/bin/call_local_llm.py` (OpenAI-compatible endpoint, mlx-lm recommended)
+- **Local LLM**: Commands pipe prompts to `~/.v23cc/call_local_llm.py` (OpenAI-compatible endpoint, mlx-lm recommended)
 - **Config**: `~/.v23cc/config.json` stores active model preset and port configuration
 
 ## Commands
@@ -24,6 +24,7 @@
 
 ## Codebase Notes
 
+- See README.md for installation and usage instructions.
 - Prettier configured: semi=true, singleQuote=true, tabWidth=2
 - Node >=18.0.0 required
 - License: MIT

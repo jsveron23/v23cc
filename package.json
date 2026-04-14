@@ -1,8 +1,13 @@
 {
   "name": "v23cc",
-  "version": "0.1.0",
+  "version": "0.2.0",
   "description": "A lightweight Claude Code workflow system by jsveron23",
-  "keywords": ["claude-code", "workflow", "context-engineering", "ai-coding"],
+  "keywords": [
+    "claude-code",
+    "workflow",
+    "context-engineering",
+    "ai-coding"
+  ],
   "author": "jsveron23",
   "license": "MIT",
   "bin": {
@@ -11,8 +16,9 @@
   "files": [
     "bin/",
     "commands/",
-    "docs/",
-    "README.md"
+    "README.md",
+    "LICENSE",
+    "scripts/"
   ],
   "engines": {
     "node": ">=18.0.0"
