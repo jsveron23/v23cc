@@ -63,9 +63,24 @@ const child = spawn(
   fs.writeFileSync(cacheFile, JSON.stringify(result));
 
   if (result.update_available) {
+    var y = '\\x1b[96m';
+    var r = '\\x1b[0m';
+    var line1 = '  Update available: ' + installed + ' \\u2192 ' + latest;
+    var line2 = '  Run npx v23cc@latest to update';
+    var inner = Math.max(line1.length, line2.length) + 2;
+    var bar = '\\u2550'.repeat(inner);
+    function pad(s) { return y + '\\u2551' + r + ' ' + s + ' '.repeat(inner - s.length - 2) + ' ' + y + '\\u2551' + r; }
+    var title = 'UPDATE AVAILABLE';
+    var titlePad = ' '.repeat(Math.floor((inner + 2 - title.length) / 2));
     process.stderr.write(
-      '\\n⬆ v23cc update available: v' + installed + ' → v' + latest + '\\n' +
-      '  Run: npx v23cc@latest\\n\\n'
+      '\\n' + titlePad + y + title + r + '\\n' +
+      y + '\\u2554' + bar + '\\u2557' + r + '\\n' +
+      y + '\\u2551' + r + ' '.repeat(inner) + y + '\\u2551' + r + '\\n' +
+      pad(line1) + '\\n' +
+      y + '\\u2551' + r + ' '.repeat(inner) + y + '\\u2551' + r + '\\n' +
+      pad(line2) + '\\n' +
+      y + '\\u2551' + r + ' '.repeat(inner) + y + '\\u2551' + r + '\\n' +
+      y + '\\u255a' + bar + '\\u255d' + r + '\\n\\n'
     );
   }
 `,
