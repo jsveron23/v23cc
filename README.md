@@ -30,6 +30,7 @@ bunx v23cc@latest --local
 | `/v23cc:model [list\|use\|add\|remove]` | Manage local LLM model presets |
 | `/v23cc:youtube <URL> [--lang ko] [--percent 20]` | Summarize a YouTube video using local LLM |
 | `/v23cc:commit [--max 72] [--no-prefix]` | Generate a git commit message using local LLM |
+| `/v23cc:sync-docs` | Update README.md and CLAUDE.md using local LLM |
 
 ## Workflow
 

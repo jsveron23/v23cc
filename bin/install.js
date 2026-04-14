@@ -68,7 +68,8 @@ function install(targetDir) {
   console.log('\nAvailable commands in Claude Code:');
   console.log('  /v23cc:youtube — Summarize a YouTube video');
   console.log('  /v23cc:model  — Manage local LLM presets');
-  console.log('  /v23cc:commit — Generate a git commit message\n');
+  console.log('  /v23cc:commit    — Generate a git commit message');
+  console.log('  /v23cc:sync-docs — Update README.md and CLAUDE.md\n');
 }
 
 function uninstall(targetDir) {
