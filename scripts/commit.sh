@@ -52,6 +52,11 @@ $DIFF
 
 Output the commit message only — no explanation, no quotes, no extra lines." | ~/.v23cc/call_local_llm.py)
 
+if [ -z "$RESULT" ]; then
+  echo "Error: LLM returned empty result — commit aborted." >&2
+  exit 1
+fi
+
 if [ -n "$ONLY_MSG" ]; then
   echo ""
   echo "Suggested commit message:"
