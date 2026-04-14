@@ -70,7 +70,10 @@ try:
 except urllib.error.HTTPError as e:
     body = e.read().decode(errors="replace")
     print(f"Server error ({e.code}): {body[:500]}", file=sys.stderr)
+    sys.exit(1)
 except urllib.error.URLError:
     print(f"Local server (port {port}) is not running.", file=sys.stderr)
+    sys.exit(1)
 except Exception as e:
     print(f"Error: {e}", file=sys.stderr)
+    sys.exit(1)
