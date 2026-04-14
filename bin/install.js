@@ -10,6 +10,8 @@ const isLocal = args.includes('--local') || args.includes('-l');
 const isUninstall = args.includes('--uninstall');
 
 const COMMANDS_SRC = path.join(__dirname, '..', 'commands');
+const SCRIPTS_SRC = path.join(__dirname, '..', 'scripts');
+const V23CC_BIN = path.join(os.homedir(), '.v23cc', 'bin');
 
 function promptChoice() {
   const readline = require('readline');
@@ -53,6 +55,31 @@ function collectMdFiles(dir, base = '') {
   return results;
 }
 
+function installScripts() {
+  if (!fs.existsSync(SCRIPTS_SRC)) return;
+  fs.mkdirSync(V23CC_BIN, { recursive: true });
+  const entries = fs.readdirSync(SCRIPTS_SRC).filter((f) => f.endsWith('.sh'));
+  for (const file of entries) {
+    const src = path.join(SCRIPTS_SRC, file);
+    const dest = path.join(V23CC_BIN, file);
+    fs.copyFileSync(src, dest);
+    fs.chmodSync(dest, 0o755);
+    console.log(`  ✓ ~/.v23cc/bin/${file}`);
+  }
+}
+
+function uninstallScripts() {
+  if (!fs.existsSync(V23CC_BIN)) return;
+  const entries = fs.readdirSync(SCRIPTS_SRC).filter((f) => f.endsWith('.sh'));
+  for (const file of entries) {
+    const dest = path.join(V23CC_BIN, file);
+    if (fs.existsSync(dest)) {
+      fs.unlinkSync(dest);
+      console.log(`  ✗ removed ~/.v23cc/bin/${file}`);
+    }
+  }
+}
+
 function install(targetDir) {
   const files = collectMdFiles(COMMANDS_SRC);
 
@@ -63,6 +90,8 @@ function install(targetDir) {
     fs.copyFileSync(src, dest);
     console.log(`  ✓ ${rel}`);
   }
+
+  installScripts();
 
   console.log(`\n✅ v23cc installed to ${targetDir}`);
   console.log('\nAvailable commands in Claude Code:');
@@ -87,6 +116,8 @@ function uninstall(targetDir) {
       console.log(`  ✗ removed ${rel}`);
     }
   }
+
+  uninstallScripts();
 
   console.log(`\n✅ v23cc uninstalled from ${targetDir}\n`);
 }
