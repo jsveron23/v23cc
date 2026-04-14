@@ -8,12 +8,12 @@ show_state() {
     echo "No config found. Run: /v23cc:model add <name> <model-id> [port]"
     return
   fi
-  ACTIVE=$(python3 -c "import json,sys; d=json.load(open('$CONFIG')); print(d.get('active','(none)'))")
+  ACTIVE=$(V23CC_CONFIG="$CONFIG" python3 -c "import json,sys,os; d=json.load(open(os.environ['V23CC_CONFIG'])); print(d.get('active','(none)'))")
   echo "Active: $ACTIVE"
   echo ""
-  python3 -c "
-import json
-d = json.load(open('$CONFIG'))
+  V23CC_CONFIG="$CONFIG" python3 -c "
+import json, os
+d = json.load(open(os.environ['V23CC_CONFIG']))
 models = d.get('models', {})
 active = d.get('active', '')
 for name, cfg in models.items():
@@ -33,16 +33,18 @@ case "$CMD" in
     NAME="${2:-}"
     if [ -z "$NAME" ]; then echo "Usage: /v23cc:model use <name>"; exit 1; fi
     if [ ! -f "$CONFIG" ]; then echo "No config found."; exit 1; fi
-    python3 -c "
-import json, sys
-d = json.load(open('$CONFIG'))
-if '$NAME' not in d.get('models', {}):
-    print('Preset not found: $NAME')
+    V23CC_CONFIG="$CONFIG" V23CC_NAME="$NAME" python3 -c "
+import json, sys, os
+config = os.environ['V23CC_CONFIG']
+name = os.environ['V23CC_NAME']
+d = json.load(open(config))
+if name not in d.get('models', {}):
+    print('Preset not found: ' + name)
     sys.exit(1)
-d['active'] = '$NAME'
-json.dump(d, open('$CONFIG', 'w'), indent=2)
-print(f'Active preset set to: $NAME')
-cfg = d['models']['$NAME']
+d['active'] = name
+json.dump(d, open(config, 'w'), indent=2)
+print(f'Active preset set to: {name}')
+cfg = d['models'][name]
 print(f'  model={cfg[\"model\"]}  port={cfg[\"port\"]}')
 "
     echo ""
@@ -58,17 +60,20 @@ print(f'  model={cfg[\"model\"]}  port={cfg[\"port\"]}')
       exit 1
     fi
     mkdir -p ~/.v23cc
-    python3 -c "
+    V23CC_CONFIG="$CONFIG" V23CC_NAME="$NAME" V23CC_MODEL="$MODEL_ID" V23CC_PORT="$PORT" python3 -c "
 import json, os
-path = '$CONFIG'
-d = json.load(open(path)) if os.path.exists(path) else {'active': '', 'models': {}}
-d.setdefault('models', {})['$NAME'] = {'model': '$MODEL_ID', 'port': int('$PORT')}
+config = os.environ['V23CC_CONFIG']
+name = os.environ['V23CC_NAME']
+model_id = os.environ['V23CC_MODEL']
+port = int(os.environ['V23CC_PORT'])
+d = json.load(open(config)) if os.path.exists(config) else {'active': '', 'models': {}}
+d.setdefault('models', {})[name] = {'model': model_id, 'port': port}
 if not d.get('active'):
-    d['active'] = '$NAME'
-json.dump(d, open(path, 'w'), indent=2)
-print(f'Preset added: $NAME')
-print(f'  model=$MODEL_ID  port=$PORT')
-if d['active'] == '$NAME':
+    d['active'] = name
+json.dump(d, open(config, 'w'), indent=2)
+print(f'Preset added: {name}')
+print(f'  model={model_id}  port={port}')
+if d['active'] == name:
     print(f'  (set as active)')
 "
     echo ""
@@ -79,18 +84,20 @@ if d['active'] == '$NAME':
     NAME="${2:-}"
     if [ -z "$NAME" ]; then echo "Usage: /v23cc:model remove <name>"; exit 1; fi
     if [ ! -f "$CONFIG" ]; then echo "No config found."; exit 1; fi
-    python3 -c "
-import json, sys
-d = json.load(open('$CONFIG'))
-if '$NAME' not in d.get('models', {}):
-    print('Preset not found: $NAME')
+    V23CC_CONFIG="$CONFIG" V23CC_NAME="$NAME" python3 -c "
+import json, sys, os
+config = os.environ['V23CC_CONFIG']
+name = os.environ['V23CC_NAME']
+d = json.load(open(config))
+if name not in d.get('models', {}):
+    print('Preset not found: ' + name)
     sys.exit(1)
-del d['models']['$NAME']
-if d.get('active') == '$NAME':
+del d['models'][name]
+if d.get('active') == name:
     d['active'] = next(iter(d['models']), '')
-    print(f'Active preset cleared (was $NAME)')
-json.dump(d, open('$CONFIG', 'w'), indent=2)
-print(f'Removed preset: $NAME')
+    print(f'Active preset cleared (was {name})')
+json.dump(d, open(config, 'w'), indent=2)
+print(f'Removed preset: {name}')
 "
     echo ""
     show_state
