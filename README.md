@@ -9,6 +9,7 @@ Instead of asking Claude to summarize a video or draft a commit message (burning
 - `/v23cc:model` — manage which local model preset is active
 - `/v23cc:youtube` — fetch subtitles from a YouTube video and summarize them in any language
 - `/v23cc:commit` — generate a git commit message from staged changes
+- `/v23cc:sync-docs` — Update README.md and CLAUDE.md using local LLM
 
 ## Install
 

@@ -1,19 +1,38 @@
 ---
 name: v23cc:sync-docs
 description: Update README.md and CLAUDE.md using the local LLM
-allowed-tools: Bash
+allowed-tools: Bash, Write
 model: haiku
 ---
 
 Update README.md and CLAUDE.md by gathering deep project context and regenerating both files using the local LLM.
 
-**Usage:** `/v23cc:sync-docs`
+**Usage:** `/v23cc:sync-docs [--lines 100] [--keep "section name"]`
+
+Arguments: $ARGUMENTS
+
+**Step 1 — Bootstrap CLAUDE.md if missing:**
+
+Use Bash to check: `test -f "$(git rev-parse --show-toplevel)/CLAUDE.md" && echo exists || echo missing`
+
+If the result is `missing`: explore the project (read key source files, package configs, directory structure) and write a `CLAUDE.md` using the Write tool — same format as Claude Code's `/init` command produces. Do this before running the bash script below.
+
+**Step 2 — Update both docs with the local LLM:**
 
 Run the following bash script via the Bash tool:
 
 ```bash
 #!/bin/bash
 set -euo pipefail
+
+ARGS="$ARGUMENTS"
+MAX_LINES="100"
+KEEP_SECTION=""
+[[ "$ARGS" =~ --lines[[:space:]]+([0-9]+) ]] && MAX_LINES="${BASH_REMATCH[1]}"
+[[ "$ARGS" =~ --keep[[:space:]]+"([^"]+)" ]] && KEEP_SECTION="${BASH_REMATCH[1]}"
+
+KEEP_RULE=""
+[ -n "$KEEP_SECTION" ] && KEEP_RULE="- Do NOT remove or modify the '$KEEP_SECTION' section — copy it exactly as-is"
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
 README_FILE="$REPO_ROOT/README.md"
@@ -118,8 +137,7 @@ echo "  Done → README.md"
 # --- Update CLAUDE.md ---
 echo "Updating CLAUDE.md..."
 
-if [ -f "$CLAUDE_FILE" ]; then
-  CLAUDE_PROMPT="You are updating a project's CLAUDE.md (AI-facing docs) based on its current source code.
+CLAUDE_PROMPT="You are updating a project's CLAUDE.md (AI-facing docs) based on its current source code.
 
 $CONTEXT
 
@@ -127,24 +145,12 @@ $CONTEXT
 $(cat "$CLAUDE_FILE")
 
 Instructions:
-- AI-facing documentation only — keep it under 100 lines
-- Do NOT remove or modify the 'Strict rules to follow' section — copy it exactly as-is
+- AI-facing documentation only — keep it under $MAX_LINES lines
+$KEEP_RULE
 - Link to README.md instead of duplicating what is already there
 - Only update the Project Overview, Architecture, and Commands sections if they are outdated
 - Do not add fabricated details — only use what the source code shows
 - Output the full updated CLAUDE.md content only — no explanation, no markdown code fences"
-else
-  CLAUDE_PROMPT="You are creating a CLAUDE.md (AI-facing docs) for a new project based on its source code.
-
-$CONTEXT
-
-Instructions:
-- AI-facing documentation only — keep it under 100 lines
-- Include: Project Overview, Architecture summary, key Commands to run
-- Link to README.md instead of duplicating what is already there
-- Do not add fabricated details — only use what the source code shows
-- Output the full CLAUDE.md content only — no explanation, no markdown code fences"
-fi
 
 CLAUDE=$(printf '%s' "$CLAUDE_PROMPT" | MAX_TOKENS=3000 ~/.local/bin/call_local_llm.py)
 
