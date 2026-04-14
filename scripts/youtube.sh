@@ -134,7 +134,7 @@ Instructions:
 - Include notable quotes or figures if present
 - Keep summary under ${PERCENT}%% of original length
 - Write entirely in $LANG_NAME
-- No preamble." | MAX_TOKENS=4000 ~/.local/bin/call_local_llm.py)
+- No preamble." | MAX_TOKENS=4000 ~/.v23cc/call_local_llm.py)
 
 echo "$RESULT"
 

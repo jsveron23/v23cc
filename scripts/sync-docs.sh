@@ -104,7 +104,7 @@ Instructions:
 - Output the full README.md content only — no explanation, no markdown code fences"
 fi
 
-printf '%s' "$README_PROMPT" | MAX_TOKENS=4000 ~/.local/bin/call_local_llm.py > "$README_FILE"
+printf '%s' "$README_PROMPT" | MAX_TOKENS=4000 ~/.v23cc/call_local_llm.py > "$README_FILE"
 echo "  Done → README.md"
 
 echo "Updating CLAUDE.md..."
@@ -124,7 +124,7 @@ $KEEP_RULE
 - Do not add fabricated details — only use what the source code shows
 - Output the full updated CLAUDE.md content only — no explanation, no markdown code fences"
 
-printf '%s' "$CLAUDE_PROMPT" | MAX_TOKENS=3000 ~/.local/bin/call_local_llm.py > "$CLAUDE_FILE"
+printf '%s' "$CLAUDE_PROMPT" | MAX_TOKENS=3000 ~/.v23cc/call_local_llm.py > "$CLAUDE_FILE"
 echo "  Done → CLAUDE.md"
 
 echo ""

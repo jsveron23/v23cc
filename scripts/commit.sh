@@ -50,7 +50,7 @@ $LOG
 Diff:
 $DIFF
 
-Output the commit message only — no explanation, no quotes, no extra lines." | ~/.local/bin/call_local_llm.py)
+Output the commit message only — no explanation, no quotes, no extra lines." | ~/.v23cc/call_local_llm.py)
 
 if [ -n "$ONLY_MSG" ]; then
   echo ""

@@ -66,6 +66,14 @@ function installScripts() {
     fs.chmodSync(dest, 0o755);
     console.log(`  ✓ ~/.v23cc/bin/${file}`);
   }
+  const pyFile = 'call_local_llm.py';
+  const pySrc = path.join(SCRIPTS_SRC, pyFile);
+  if (fs.existsSync(pySrc)) {
+    const pyDest = path.join(os.homedir(), '.v23cc', pyFile);
+    fs.copyFileSync(pySrc, pyDest);
+    fs.chmodSync(pyDest, 0o755);
+    console.log(`  ✓ ~/.v23cc/${pyFile}`);
+  }
 }
 
 function uninstallScripts() {
@@ -77,6 +85,11 @@ function uninstallScripts() {
       fs.unlinkSync(dest);
       console.log(`  ✗ removed ~/.v23cc/bin/${file}`);
     }
+  }
+  const pyDest = path.join(os.homedir(), '.v23cc', 'call_local_llm.py');
+  if (fs.existsSync(pyDest)) {
+    fs.unlinkSync(pyDest);
+    console.log('  ✗ removed ~/.v23cc/call_local_llm.py');
   }
 }
 
