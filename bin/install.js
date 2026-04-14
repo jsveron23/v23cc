@@ -74,6 +74,61 @@ function installScripts() {
     fs.chmodSync(pyDest, 0o755);
     console.log(`  ✓ ~/.v23cc/${pyFile}`);
   }
+  const hookSrc = path.join(SCRIPTS_SRC, 'check-update.js');
+  if (fs.existsSync(hookSrc)) {
+    const hookDest = path.join(os.homedir(), '.v23cc', 'check-update.js');
+    fs.copyFileSync(hookSrc, hookDest);
+    console.log(`  ✓ ~/.v23cc/check-update.js`);
+  }
+}
+
+function writeVersionMarker(version) {
+  const dir = path.join(os.homedir(), '.v23cc');
+  fs.mkdirSync(dir, { recursive: true });
+  fs.writeFileSync(path.join(dir, 'version'), version, 'utf8');
+}
+
+function registerHook() {
+  const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+  let settings = {};
+  if (fs.existsSync(settingsPath)) {
+    try {
+      settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+    } catch (e) {}
+  }
+  if (!settings.hooks) settings.hooks = {};
+  if (!settings.hooks.SessionStart) settings.hooks.SessionStart = [];
+
+  const hookCommand = `node "${path.join(os.homedir(), '.v23cc', 'check-update.js')}"`;
+  const alreadyRegistered = settings.hooks.SessionStart.some((entry) =>
+    entry.hooks?.some((h) => h.command?.includes('.v23cc/check-update.js'))
+  );
+  if (!alreadyRegistered) {
+    settings.hooks.SessionStart.push({ hooks: [{ type: 'command', command: hookCommand }] });
+    fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
+    console.log(`  ✓ registered SessionStart hook in ~/.claude/settings.json`);
+  }
+}
+
+function unregisterHook() {
+  const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+  if (!fs.existsSync(settingsPath)) return;
+  let settings = {};
+  try {
+    settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+  } catch (e) {
+    return;
+  }
+  if (!settings.hooks?.SessionStart) return;
+  const before = settings.hooks.SessionStart.length;
+  settings.hooks.SessionStart = settings.hooks.SessionStart.filter(
+    (entry) => !entry.hooks?.some((h) => h.command?.includes('.v23cc/check-update.js'))
+  );
+  if (settings.hooks.SessionStart.length !== before) {
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
+    console.log(`  ✗ removed SessionStart hook from ~/.claude/settings.json`);
+  }
 }
 
 function uninstallScripts() {
@@ -106,6 +161,10 @@ function install(targetDir) {
 
   installScripts();
 
+  const pkg = require(path.join(__dirname, '..', 'package.json'));
+  writeVersionMarker(pkg.version);
+  registerHook();
+
   console.log(`\n✅ v23cc installed to ${targetDir}`);
   console.log('\nAvailable commands in Claude Code:');
   console.log('  /v23cc:youtube — Summarize a YouTube video');
@@ -131,6 +190,18 @@ function uninstall(targetDir) {
   }
 
   uninstallScripts();
+  unregisterHook();
+
+  const hookDest = path.join(os.homedir(), '.v23cc', 'check-update.js');
+  if (fs.existsSync(hookDest)) {
+    fs.unlinkSync(hookDest);
+    console.log('  ✗ removed ~/.v23cc/check-update.js');
+  }
+  const versionDest = path.join(os.homedir(), '.v23cc', 'version');
+  if (fs.existsSync(versionDest)) {
+    fs.unlinkSync(versionDest);
+    console.log('  ✗ removed ~/.v23cc/version');
+  }
 
   console.log(`\n✅ v23cc uninstalled from ${targetDir}\n`);
 }
