@@ -1,8 +1,14 @@
 # v23cc
 
-A lightweight Claude Code workflow system by jsveron23, powered by a local LLM.
+A set of Claude Code slash commands that offload repetitive tasks to a local LLM — no cloud API calls, no tokens spent on boilerplate.
 
-Spec-driven, context-safe, and minimal. Runs on a local LLM server — no cloud API required.
+Instead of asking Claude to summarize a video or draft a commit message (burning context and API quota), v23cc pipes the work to a locally running model (e.g. Gemma via [mlx-lm](https://github.com/ml-explore/mlx-lm)). Claude stays focused on what it's good at; the local model handles the grunt work.
+
+**What's included:**
+
+- `/v23cc:youtube` — fetch subtitles from a YouTube video and summarize them in any language
+- `/v23cc:commit` — generate a git commit message from staged changes
+- `/v23cc:model` — manage which local model preset is active
 
 ## Install
 
@@ -23,6 +29,7 @@ bunx v23cc@latest --local
 |---------|-------------|
 | `/v23cc:model [list\|use\|add\|remove]` | Manage local LLM model presets |
 | `/v23cc:youtube <URL> [--lang ko] [--percent 20]` | Summarize a YouTube video using local LLM |
+| `/v23cc:commit [--max 72] [--no-prefix]` | Generate a git commit message using local LLM |
 
 ## Workflow
 
@@ -39,6 +46,11 @@ bunx v23cc@latest --local
 # Summarize in English, shorter output
 /v23cc:youtube https://youtube.com/watch?v=... --lang en --percent 10
 
+# Generate a commit message (conventional prefix style by default)
+/v23cc:commit
+
+# Generate a commit message without conventional prefix
+/v23cc:commit --no-prefix
 ```
 
 ## Local LLM (optional)

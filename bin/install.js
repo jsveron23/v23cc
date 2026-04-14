@@ -67,7 +67,8 @@ function install(targetDir) {
   console.log(`\n✅ v23cc installed to ${targetDir}`);
   console.log('\nAvailable commands in Claude Code:');
   console.log('  /v23cc:youtube — Summarize a YouTube video');
-  console.log('  /v23cc:model  — Manage local LLM presets\n');
+  console.log('  /v23cc:model  — Manage local LLM presets');
+  console.log('  /v23cc:commit — Generate a git commit message\n');
 }
 
 function uninstall(targetDir) {
