@@ -77,7 +77,7 @@ if [ -z "$TRANSCRIPT" ] && [ "$LANG" != "en" ]; then
   echo "No $LANG subtitles. Trying English..."
   yt-dlp --write-auto-sub --sub-lang en --skip-download --sub-format vtt --no-progress \
     -o "$TMPDIR_YT/sub_en" "$URL" 2>/dev/null
-  SUB_FILE=$(find "$TMPDIR_YT" -name "*.vtt" 2>/dev/null | head -1)
+  SUB_FILE=$(find "$TMPDIR_YT" -name "sub_en*.vtt" 2>/dev/null | head -1)
   if [ -n "$SUB_FILE" ] && [ -f "$SUB_FILE" ]; then
     echo "English subtitles found. Will translate to $LANG_NAME via LLM."
     TRANSCRIPT=$(sed '1,/^$/d' "$SUB_FILE" \
