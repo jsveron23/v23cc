@@ -7,6 +7,9 @@ Spec-driven, context-safe, and minimal. Runs on a local LLM server — no cloud 
 ## Install
 
 ```bash
+# Interactive (prompts global or local)
+bunx v23cc@latest
+
 # Global (works in all projects)
 bunx v23cc@latest --global
 
@@ -55,7 +58,8 @@ You can pipe prompts to a local LLM server before invoking v23cc commands. Save 
 """Helper script: pipe a prompt via stdin to the local LLM server and print the response.
 
 Env vars:
-  PORT        — local LLM server port (default 9000)
+  MODEL       — override model name (skips config file lookup)
+  PORT        — override server port (skips config file lookup)
   MAX_TOKENS  — max output tokens (default 2000)
   IMAGE_PATH  — optional path to an image file (enables vision mode)
 """
@@ -66,8 +70,24 @@ import json
 import base64
 import urllib.request
 
+def load_preset():
+    config_path = os.path.expanduser("~/.v23cc/config.json")
+    if not os.path.exists(config_path):
+        return None, None
+    try:
+        with open(config_path) as f:
+            d = json.load(f)
+        active = d.get("active", "")
+        preset = d.get("models", {}).get(active)
+        if preset:
+            return preset.get("model"), preset.get("port")
+    except Exception:
+        pass
+    return None, None
+
+preset_model, preset_port = load_preset()
+
 prompt = sys.stdin.read()
-port = os.environ.get("PORT", "9000")
 image_path = os.environ.get("IMAGE_PATH", "")
 
 # Build message content
@@ -84,8 +104,11 @@ if image_path and os.path.isfile(image_path):
 else:
     content = prompt.encode('utf-8', errors='ignore').decode('utf-8')
 
+model = os.environ.get("MODEL") or preset_model or "mlx-community/gemma-4-e4b-it-4bit"
+port = os.environ.get("PORT") or (str(preset_port) if preset_port else "9000")
+
 payload = json.dumps({
-    "model": "mlx-community/gemma-4-e4b-it-4bit",
+    "model": model,
     "messages": [{"role": "user", "content": content}],
     "max_tokens": int(os.environ.get("MAX_TOKENS", 2000))
 }).encode()
@@ -114,6 +137,7 @@ except Exception as e:
 echo "Summarize this file" | python llm.py
 IMAGE_PATH=screenshot.png echo "What's in this image?" | python llm.py
 MAX_TOKENS=500 echo "Short answer only" | python llm.py
+MODEL=mlx-community/llama-3-8b-4bit echo "Use a different model" | python llm.py
 ```
 
 ## Uninstall
