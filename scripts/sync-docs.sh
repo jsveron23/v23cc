@@ -105,13 +105,7 @@ $MISSING"
 echo "Updating README.md..."
 
 if [ -f "$README_FILE" ]; then
-  README_PROMPT="You are updating a project's README.md based on its current source code.
-
-$CONTEXT
-$MISSING_SECTION
-
-=== Current README.md ===
-$(cat "$README_FILE")
+  README_SYSTEM="You are updating a project's README.md based on its current source code.
 
 Instructions:
 - Human-facing documentation
@@ -120,20 +114,24 @@ Instructions:
 - Add documentation for any files listed under 'Files not yet documented' if they are user-facing
 - Do not add fabricated details — only use what the source code shows
 - Output the full updated README.md content only — no explanation, no markdown code fences"
-else
-  README_PROMPT="You are creating a README.md for a new project based on its source code.
+  README_USER="$CONTEXT
+$MISSING_SECTION
 
-$CONTEXT
+=== Current README.md ===
+$(cat "$README_FILE")"
+else
+  README_SYSTEM="You are creating a README.md for a new project based on its source code.
 
 Instructions:
 - Human-facing documentation
 - Explain what the project does, how to install it, and how to run it
 - Do not add fabricated details — only use what the source code shows
 - Output the full README.md content only — no explanation, no markdown code fences"
+  README_USER="$CONTEXT"
 fi
 
 README_TMP=$(mktemp)
-if printf '%s' "$README_PROMPT" | MAX_TOKENS=4000 ~/.v23cc/call_local_llm.py > "$README_TMP" && [ -s "$README_TMP" ]; then
+if printf '%s' "$README_USER" | SYSTEM="$README_SYSTEM" MAX_TOKENS=4000 ~/.v23cc/call_local_llm.py > "$README_TMP" && [ -s "$README_TMP" ]; then
   mv "$README_TMP" "$README_FILE"
   echo "  Done → README.md"
 else
@@ -144,12 +142,7 @@ fi
 
 echo "Updating CLAUDE.md..."
 
-CLAUDE_PROMPT="You are updating a project's CLAUDE.md (AI-facing docs) based on its current source code.
-
-$CONTEXT
-
-=== Current CLAUDE.md ===
-$(cat "$CLAUDE_FILE")
+CLAUDE_SYSTEM="You are updating a project's CLAUDE.md (AI-facing docs) based on its current source code.
 
 Instructions:
 - AI-facing documentation only — keep it under $MAX_LINES lines
@@ -159,8 +152,13 @@ $KEEP_RULE
 - Do not add fabricated details — only use what the source code shows
 - Output the full updated CLAUDE.md content only — no explanation, no markdown code fences"
 
+CLAUDE_USER="$CONTEXT
+
+=== Current CLAUDE.md ===
+$(cat "$CLAUDE_FILE")"
+
 CLAUDE_TMP=$(mktemp)
-if printf '%s' "$CLAUDE_PROMPT" | MAX_TOKENS=3000 ~/.v23cc/call_local_llm.py > "$CLAUDE_TMP" && [ -s "$CLAUDE_TMP" ]; then
+if printf '%s' "$CLAUDE_USER" | SYSTEM="$CLAUDE_SYSTEM" MAX_TOKENS=3000 ~/.v23cc/call_local_llm.py > "$CLAUDE_TMP" && [ -s "$CLAUDE_TMP" ]; then
   mv "$CLAUDE_TMP" "$CLAUDE_FILE"
   echo "  Done → CLAUDE.md"
 else
