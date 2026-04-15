@@ -213,18 +213,18 @@ function uninstallMcp() {
 }
 
 function createOutputDir() {
+  const gitignorePath = path.join(process.cwd(), '.gitignore');
+  let content = fs.existsSync(gitignorePath) ? fs.readFileSync(gitignorePath, 'utf8') : '';
   const outDir = path.join(process.cwd(), 'v23cc');
   if (!fs.existsSync(outDir)) {
     fs.mkdirSync(outDir, { recursive: true });
     console.log('  ✓ created v23cc/');
   }
-  const gitignorePath = path.join(process.cwd(), '.gitignore');
   const entry = '/v23cc/';
-  let content = fs.existsSync(gitignorePath) ? fs.readFileSync(gitignorePath, 'utf8') : '';
   if (!content.split('\n').some((line) => line.trim() === entry)) {
     content = content.endsWith('\n') || content === '' ? content + entry + '\n' : content + '\n' + entry + '\n';
     fs.writeFileSync(gitignorePath, content, 'utf8');
-    console.log('  ✓ added v23cc/ to .gitignore');
+    console.log('  ✓ added /v23cc/ to .gitignore');
   }
 }
 

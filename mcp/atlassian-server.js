@@ -104,13 +104,13 @@ function stripHtml(html) {
 
 function getTimestamp() {
   const now = new Date();
-  const date = now.toISOString().split('T')[0];
+  const date = now.toISOString().split('T')[0].replace(/-/g, '');
   const time = now.toTimeString().split(' ')[0].replace(/:/g, '');
-  return { date, time };
+  return `${date}-${time}`;
 }
 
-function getOutputDir() {
-  return path.join(process.cwd(), 'v23cc');
+function getOutputDir(sub) {
+  return path.join(process.cwd(), 'v23cc', sub);
 }
 
 // ─── Tool: jira_search ────────────────────────────────────────────────────────
@@ -145,12 +145,11 @@ async function jiraSearch({ query, project, max = 20, type, assignee }) {
     groups[typeName].push(issue);
   }
 
-  const { date, time } = getTimestamp();
-  const displayTime = time.replace(/(\d{2})(\d{2})(\d{2})/, '$1:$2:$3');
+  const ts = getTimestamp();
 
   const searchLabel = [query, assignee ? `assignee:${assignee}` : ''].filter(Boolean).join(' ');
   let md = `# Jira Search: "${searchLabel}"\n\n`;
-  md += `**Date:** ${date} ${displayTime}  \n`;
+  md += `**Date:** ${ts}  \n`;
   md += `**Total:** ${issues.length} issues\n\n`;
 
   const typeOrder = ['Bug', 'Story', 'Task', 'Epic', 'Sub-task'];
@@ -177,9 +176,9 @@ async function jiraSearch({ query, project, max = 20, type, assignee }) {
     md += '\n';
   }
 
-  const outDir = getOutputDir();
+  const outDir = getOutputDir('jira');
   fs.mkdirSync(outDir, { recursive: true });
-  const filename = `jira-${date}-${time}.md`;
+  const filename = `${ts}.md`;
   const filepath = path.join(outDir, filename);
   fs.writeFileSync(filepath, md, 'utf8');
 
@@ -210,11 +209,10 @@ async function confluenceSearch({ query, space, max = 10, type }) {
   const data = await atlassianRequest(url, auth);
   const pages = data.results || [];
 
-  const { date, time } = getTimestamp();
-  const displayTime = time.replace(/(\d{2})(\d{2})(\d{2})/, '$1:$2:$3');
+  const ts = getTimestamp();
 
   let md = `# Confluence Search: "${query}"\n\n`;
-  md += `**Date:** ${date} ${displayTime}  \n`;
+  md += `**Date:** ${ts}  \n`;
   md += `**Total:** ${pages.length} pages\n\n`;
 
   for (const page of pages) {
@@ -244,9 +242,9 @@ async function confluenceSearch({ query, space, max = 10, type }) {
     md += '---\n\n';
   }
 
-  const outDir = getOutputDir();
+  const outDir = getOutputDir('confluence');
   fs.mkdirSync(outDir, { recursive: true });
-  const filename = `confluence-${date}-${time}.md`;
+  const filename = `${ts}.md`;
   const filepath = path.join(outDir, filename);
   fs.writeFileSync(filepath, md, 'utf8');
 
@@ -279,7 +277,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
   tools: [
     {
       name: 'jira_search',
-      description: 'Search Jira issues and write grouped results to a markdown file in v23cc/',
+      description: 'Search Jira issues and write grouped results to a markdown file in v23cc/jira/',
       inputSchema: {
         type: 'object',
         properties: {
@@ -295,7 +293,7 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
     {
       name: 'confluence_search',
       description:
-        'Search Confluence pages and write summarized results (via local LLM) to a markdown file in v23cc/',
+        'Search Confluence pages and write summarized results (via local LLM) to a markdown file in v23cc/confluence/',
       inputSchema: {
         type: 'object',
         properties: {

@@ -146,11 +146,11 @@ Just ask Claude naturally — no commands to remember:
 
 | What you say | What happens |
 |---|---|
-| "search jira for ocr" | Searches Jira, groups results by Bug/Story/Task, writes `v23cc/jira-<date>-<time>.md` |
+| "search jira for ocr" | Searches Jira, groups results by Bug/Story/Task, writes `v23cc/jira/<timestamp>.md` |
 | "search jira for payment bugs in project CORE" | Filtered by project and type |
-| "search confluence for deployment guide" | Fetches pages, summarizes each via local LLM, writes `v23cc/confluence-<date>-<time>.md` |
+| "search confluence for deployment guide" | Fetches pages, summarizes each via local LLM, writes `v23cc/confluence/<timestamp>.md` |
 
-Results are written as markdown files to the `v23cc/` folder in your project (git-ignored automatically).
+Results are written as markdown files to `v23cc/jira/` and `v23cc/confluence/` in your project (git-ignored automatically).
 
 ### Jira tool parameters
 
