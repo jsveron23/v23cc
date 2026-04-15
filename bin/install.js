@@ -151,6 +151,25 @@ function uninstallScripts() {
   }
 }
 
+function migrateConfig() {
+  const configPath = path.join(os.homedir(), '.v23cc', 'config.json');
+  if (!fs.existsSync(configPath)) return;
+  let d;
+  try {
+    d = JSON.parse(fs.readFileSync(configPath, 'utf8'));
+  } catch (e) {
+    return;
+  }
+  if (!('active' in d)) return;
+  const activeName = d.active;
+  delete d.active;
+  for (const [name, cfg] of Object.entries(d.models || {})) {
+    cfg.active = name === activeName;
+  }
+  fs.writeFileSync(configPath, JSON.stringify(d, null, 2) + '\n', 'utf8');
+  console.log('  ✓ migrated config.json to new format');
+}
+
 function install(targetDir) {
   const files = collectMdFiles(COMMANDS_SRC);
 
@@ -163,6 +182,7 @@ function install(targetDir) {
   }
 
   installScripts();
+  migrateConfig();
 
   const pkg = require(path.join(__dirname, '..', 'package.json'));
   writeVersionMarker(pkg.version);
@@ -174,7 +194,8 @@ function install(targetDir) {
   console.log('  /v23cc:model  — Manage local LLM presets');
   console.log('  /v23cc:commit    — Generate a git commit message');
   console.log('  /v23cc:sync-docs — Update README.md and CLAUDE.md');
-  console.log('  /v23cc:pr        — Generate a PR title and description\n');
+  console.log('  /v23cc:pr        — Generate a PR title and description');
+  console.log('  /v23cc:config    — Show config list\n');
 }
 
 function uninstall(targetDir) {

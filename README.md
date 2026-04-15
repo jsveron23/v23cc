@@ -7,6 +7,7 @@ Instead of asking Claude to summarize a video or draft a commit message (burning
 **What's included:**
 
 - `/v23cc:model` — manage which local model preset is active
+- `/v23cc:config` — show config list
 - `/v23cc:youtube` — fetch subtitles from a YouTube video and summarize them in any language
 - `/v23cc:commit` — generate a git commit message from staged changes
 - `/v23cc:sync-docs` — update README.md and CLAUDE.md using local LLM
@@ -38,6 +39,7 @@ npx v23cc@latest --local
 | Command | Description |
 |---------|-------------|
 | `/v23cc:model [list\|use\|add\|remove]` | Manage local LLM model presets |
+| `/v23cc:config` | Show config list |
 | `/v23cc:youtube <URL> [--lang ko] [--percent 20]` | Summarize a YouTube video using local LLM |
 | `/v23cc:commit [--max 72] [--no-prefix] [--only-msg] [--all]` | Generate and commit using local LLM |
 | `/v23cc:sync-docs [--lines 100] [--keep "section name"]` | Update README.md and CLAUDE.md using local LLM |
@@ -111,6 +113,9 @@ bash ~/.v23cc/bin/sync-docs.sh --lines 80 --keep "Architecture"
 # Generate PR title/description
 bash ~/.v23cc/bin/pr.sh
 bash ~/.v23cc/bin/pr.sh --base develop
+
+# Show config
+bash ~/.v23cc/bin/config.sh
 ```
 
 ## Uninstall
