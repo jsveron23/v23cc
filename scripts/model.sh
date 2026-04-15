@@ -8,16 +8,21 @@ show_state() {
     echo "No config found. Run: /v23cc:model add <name> <model-id> [port]"
     return
   fi
-  ACTIVE=$(V23CC_CONFIG="$CONFIG" python3 -c "import json,sys,os; d=json.load(open(os.environ['V23CC_CONFIG'])); print(d.get('active','(none)'))")
-  echo "Active: $ACTIVE"
-  echo ""
   V23CC_CONFIG="$CONFIG" python3 -c "
 import json, os
-d = json.load(open(os.environ['V23CC_CONFIG']))
+config = os.environ['V23CC_CONFIG']
+d = json.load(open(config))
+if 'active' in d:
+    active_name = d.pop('active')
+    for n, cfg in d.get('models', {}).items():
+        cfg['active'] = (n == active_name)
+    json.dump(d, open(config, 'w'), indent=2)
 models = d.get('models', {})
-active = d.get('active', '')
+active_name = next((n for n, c in models.items() if c.get('active')), '(none)')
+print(f'Active: {active_name}')
+print()
 for name, cfg in models.items():
-    marker = '* ' if name == active else '  '
+    marker = '* ' if cfg.get('active') else '  '
     print(f'{marker}{name}  {cfg[\"model\"]}  port={cfg[\"port\"]}')
 "
 }
@@ -38,10 +43,15 @@ import json, sys, os
 config = os.environ['V23CC_CONFIG']
 name = os.environ['V23CC_NAME']
 d = json.load(open(config))
+if 'active' in d:
+    active_name = d.pop('active')
+    for n, cfg in d.get('models', {}).items():
+        cfg['active'] = (n == active_name)
 if name not in d.get('models', {}):
     print('Preset not found: ' + name)
     sys.exit(1)
-d['active'] = name
+for n, cfg in d['models'].items():
+    cfg['active'] = (n == name)
 json.dump(d, open(config, 'w'), indent=2)
 print(f'Active preset set to: {name}')
 cfg = d['models'][name]
@@ -66,14 +76,18 @@ config = os.environ['V23CC_CONFIG']
 name = os.environ['V23CC_NAME']
 model_id = os.environ['V23CC_MODEL']
 port = int(os.environ['V23CC_PORT'])
-d = json.load(open(config)) if os.path.exists(config) else {'active': '', 'models': {}}
-d.setdefault('models', {})[name] = {'model': model_id, 'port': port}
-if not d.get('active'):
-    d['active'] = name
+d = json.load(open(config)) if os.path.exists(config) else {'models': {}}
+if 'active' in d:
+    active_name = d.pop('active')
+    for n, cfg in d.get('models', {}).items():
+        cfg['active'] = (n == active_name)
+models = d.setdefault('models', {})
+has_active = any(c.get('active') for c in models.values())
+models[name] = {'model': model_id, 'port': port, 'active': not has_active}
 json.dump(d, open(config, 'w'), indent=2)
 print(f'Preset added: {name}')
 print(f'  model={model_id}  port={port}')
-if d['active'] == name:
+if models[name]['active']:
     print(f'  (set as active)')
 "
     echo ""
@@ -89,13 +103,19 @@ import json, sys, os
 config = os.environ['V23CC_CONFIG']
 name = os.environ['V23CC_NAME']
 d = json.load(open(config))
+if 'active' in d:
+    active_name = d.pop('active')
+    for n, cfg in d.get('models', {}).items():
+        cfg['active'] = (n == active_name)
 if name not in d.get('models', {}):
     print('Preset not found: ' + name)
     sys.exit(1)
+was_active = d['models'][name].get('active', False)
 del d['models'][name]
-if d.get('active') == name:
-    d['active'] = next(iter(d['models']), '')
-    print(f'Active preset cleared (was {name})')
+if was_active and d['models']:
+    first = next(iter(d['models']))
+    d['models'][first]['active'] = True
+    print(f'Active preset cleared (was {name}), now: {first}')
 json.dump(d, open(config, 'w'), indent=2)
 print(f'Removed preset: {name}')
 "

@@ -22,8 +22,12 @@ def load_preset():
     try:
         with open(config_path) as f:
             d = json.load(f)
-        active = d.get("active", "")
-        preset = d.get("models", {}).get(active)
+        models = d.get("models", {})
+        # Support old format (top-level "active" key)
+        if "active" in d:
+            preset = models.get(d["active"], "")
+        else:
+            preset = next((cfg for cfg in models.values() if cfg.get("active")), None)
         if preset:
             return preset.get("model"), preset.get("port")
     except Exception:
