@@ -45,6 +45,7 @@ npx v23cc@latest --local
 | `/v23cc:commit [--max 72] [--no-prefix] [--only-msg] [--all]` | Generate and commit using local LLM |
 | `/v23cc:sync-docs [--lines 100] [--keep "section name"]` | Update README.md and CLAUDE.md using local LLM |
 | `/v23cc:pr [--base develop] [--only-msg]` | Generate a PR title and description using the local LLM |
+| `/v23cc:atlassian [init\|status]` | Set up Jira & Confluence credentials |
 
 ## Workflow
 
@@ -132,7 +133,10 @@ v23cc includes a local MCP server that integrates Jira and Confluence directly i
    ```
 
 2. Configure your Atlassian credentials once:
-   > "init jira with domain `mycompany`, email `you@company.com`, token `your-api-token`"
+   ```
+   /v23cc:atlassian init
+   ```
+   Claude will ask for your domain, email, and API token one at a time.
 
    Generate an API token at [id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens).
 

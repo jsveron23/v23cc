@@ -219,7 +219,7 @@ function createOutputDir() {
     console.log('  ✓ created v23cc/');
   }
   const gitignorePath = path.join(process.cwd(), '.gitignore');
-  const entry = 'v23cc/';
+  const entry = '/v23cc/';
   let content = fs.existsSync(gitignorePath) ? fs.readFileSync(gitignorePath, 'utf8') : '';
   if (!content.split('\n').some((line) => line.trim() === entry)) {
     content = content.endsWith('\n') || content === '' ? content + entry + '\n' : content + '\n' + entry + '\n';
@@ -269,12 +269,13 @@ function install(targetDir) {
 
   console.log(`\n✅ v23cc installed to ${targetDir}`);
   console.log('\nAvailable commands in Claude Code:');
-  console.log('  /v23cc:youtube — Summarize a YouTube video');
-  console.log('  /v23cc:model  — Manage local LLM presets');
-  console.log('  /v23cc:commit    — Generate a git commit message');
-  console.log('  /v23cc:sync-docs — Update README.md and CLAUDE.md');
-  console.log('  /v23cc:pr        — Generate a PR title and description');
-  console.log('  /v23cc:config    — Show config list\n');
+  console.log('  /v23cc:youtube    — Summarize a YouTube video');
+  console.log('  /v23cc:model      — Manage local LLM presets');
+  console.log('  /v23cc:commit     — Generate a git commit message');
+  console.log('  /v23cc:sync-docs  — Update README.md and CLAUDE.md');
+  console.log('  /v23cc:pr         — Generate a PR title and description');
+  console.log('  /v23cc:config     — Show config list');
+  console.log('  /v23cc:atlassian  — Set up Jira & Confluence credentials\n');
 }
 
 function uninstall(targetDir) {
