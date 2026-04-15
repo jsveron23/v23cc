@@ -56,7 +56,12 @@ if [ -n "$ONLY_MSG" ]; then
   echo "$BODY"
   echo ""
 else
-  if gh pr create --title "$TITLE" --body "$BODY"; then
+  BRANCH=$(git rev-parse --abbrev-ref HEAD)
+  if ! git config "branch.${BRANCH}.remote" > /dev/null 2>&1; then
+    git push -u origin "$BRANCH"
+  fi
+
+  if gh pr create --base "$BASE" --title "$TITLE" --body "$BODY"; then
     echo ""
     echo "PR created."
   else
