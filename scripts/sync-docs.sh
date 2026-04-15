@@ -99,7 +99,8 @@ $(cat "$README_FILE")
 Instructions:
 - Human-facing documentation
 - Explain what the project does and how to run it
-- Keep the existing structure; update only what is outdated or missing
+- Keep the existing structure; update what is outdated or missing
+- Compare the source snippets against the current README — ensure every public feature is documented
 - Do not add fabricated details — only use what the source code shows
 - Output the full updated README.md content only — no explanation, no markdown code fences"
 else

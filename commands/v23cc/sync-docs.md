@@ -7,7 +7,7 @@ model: haiku
 
 **Usage:** `/v23cc:sync-docs [--lines 100] [--keep "section name"]`
 
-Run the following command via the Bash tool, passing `$ARGUMENTS` as-is:
+Run the following command via the Bash tool with `timeout: 300000`, passing `$ARGUMENTS` as-is:
 
 ```
 bash ~/.v23cc/bin/sync-docs.sh $ARGUMENTS
