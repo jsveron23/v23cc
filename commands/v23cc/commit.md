@@ -5,6 +5,8 @@ allowed-tools: Bash
 model: haiku
 ---
 
+**IMPORTANT: ALWAYS run the Bash command below immediately. NEVER skip it or answer from context — the script handles all edge cases itself.**
+
 Do not stage files manually — staging only happens via the `--all` flag.
 
 **Usage:** `/v23cc:commit [--max 72] [--no-prefix] [--only-msg] [--all]`

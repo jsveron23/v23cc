@@ -16,7 +16,7 @@ if [ -z "$DIFF" ]; then
   exit 1
 fi
 
-RESULT=$(printf '%s' "Generate a pull request title and description for the following branch changes.
+SYSTEM="You are a software engineer. Generate a pull request title and description for the following branch changes.
 
 Rules:
 - Line 1: PR title — imperative mood, under 72 characters, no period at end
@@ -29,13 +29,13 @@ Instructions:
 - Focus on intent and impact, not which files were touched
 - Match the tone of the recent commits shown below
 
-Recent commits (for style reference):
+Output the title and description only — no explanation, no code fences, no extra lines."
+
+RESULT=$(printf '%s' "Recent commits (for style reference):
 $LOG
 
 Diff:
-$DIFF
-
-Output the title and description only — no explanation, no code fences, no extra lines." | ~/.v23cc/call_local_llm.py)
+$DIFF" | SYSTEM="$SYSTEM" ~/.v23cc/call_local_llm.py)
 
 if [ -z "$RESULT" ]; then
   echo "Error: LLM returned empty result — aborted." >&2

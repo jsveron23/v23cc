@@ -2,35 +2,33 @@
 
 ## Project Overview
 
-**v23cc** is a collection of Claude Code slash commands that offload repetitive tasks to a locally running LLM, eliminating the need for cloud API calls and preserving token budget for core work.
+v23cc is a lightweight Claude Code workflow system that uses local LLM inference to offload repetitive coding tasks, preserving cloud token budget.
 
-- **Purpose**: Provide lightweight CLI commands for common coding tasks (commit messages, video summarization, documentation generation) via local LLM inference
-- **Tech Stack**: Node.js/Bun, Claude Code markdown-based command system
-- **Key Files**: `/commands/v23cc/*.md` (slash command definitions), `bin/install.js` (installer)
+- **Purpose**: Provides CLI commands for tasks like commit message generation, video summarization, and documentation updates via local LLM.
+- **Tech Stack**: Node.js/Bun, Claude Code markdown-based command system.
+- **Key Files**: `/commands/v23cc/*.md` (slash command definitions), `bin/install.js` (installer).
 
 ## Architecture
 
-- **Command Format**: Markdown files in `/commands/v23cc/` define slash commands in Claude Code format.
-- **Installer**: `bin/install.js` handles installation paths (global/local).
-- **Local LLM**: Commands pipe prompts to a local endpoint (e.g., `mlx-lm` recommended) for inference.
-- **Config**: `~/.v23cc/config.json` stores active model preset and port configuration.
+- **Command Definition**: Slash commands are defined in Markdown files within `/commands/v23cc/`.
+- **Execution Flow**: Commands pipe prompts to a local LLM endpoint (e.g., `mlx-lm`) for execution.
+- **Configuration**: `~/.v23cc/config.json` manages the active local model preset and port settings.
+- **Installation**: `bin/install.js` manages installation paths (global/local).
 
 ## Commands
 
-- **`/v23cc:model`** — Manage local LLM model presets (list, use, add, remove)
-- **`/v23cc:youtube`** — Fetch and summarize YouTube video subtitles in any language
-- **`/v23cc:commit`** — Generate git commit messages from staged changes
-- **`/v23cc:sync-docs`** — Regenerate README.md and CLAUDE.md using local LLM context
-- **`/v23cc:pr`** — Generate PR title and description from branch diff
+- **`/v23cc:model`**: Manage local LLM model presets (list, use, add, remove).
+- **`/v23cc:youtube`**: Summarize a YouTube video using local LLM.
+- **`/v23cc:commit`**: Generate a commit message using the local LLM.
+- **`/v23cc:sync-docs`**: Update `README.md` and `CLAUDE.md` using the local LLM.
+- **`/v23cc:pr`**: Generate a Pull Request title and description using the local LLM.
 
 ## Rules
 
-- Do not claim files are outdated or out of sync without verifying first
+- Do not claim files are outdated or out of sync without verifying first.
 
 ## Codebase Notes
 
 - See README.md for installation and usage instructions.
-- Prettier configured: semi=true, singleQuote=true, tabWidth=2
-- Node >=18.0.0 required
-- License: MIT
-- Repository: https://github.com/jsveron23/v23cc
+- Node >=18.0.0 required.
+- License: MIT.
