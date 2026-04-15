@@ -18,6 +18,7 @@ v23cc is a lightweight Claude Code workflow system that uses local LLM inference
 ## Commands
 
 - **`/v23cc:model`**: Manage local LLM model presets (list, use, add, remove).
+- **`/v23cc:config`**: Show config list.
 - **`/v23cc:youtube`**: Summarize a YouTube video using local LLM.
 - **`/v23cc:commit`**: Generate a commit message using the local LLM.
 - **`/v23cc:sync-docs`**: Update `README.md` and `CLAUDE.md` using the local LLM.
