@@ -5,6 +5,8 @@ allowed-tools: Bash
 model: haiku
 ---
 
+**IMPORTANT: ALWAYS run the Bash command below immediately. NEVER skip it or answer from context — the script handles all edge cases itself.**
+
 Manage local LLM model presets stored in `~/.v23cc/config.json`.
 
 **Usage:** `/v23cc:model [list | use <name> | add <name> <model-id> [port] | remove <name>]`
