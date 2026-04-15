@@ -16,6 +16,7 @@
   "files": [
     "bin/",
     "commands/",
+    "mcp/",
     "README.md",
     "LICENSE",
     "scripts/"
@@ -35,6 +36,9 @@
     "trailingComma": "es5",
     "bracketSpacing": true,
     "proseWrap": "always"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1"
   },
   "devDependencies": {
     "prettier": "^3"

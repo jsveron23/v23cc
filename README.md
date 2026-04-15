@@ -12,6 +12,7 @@ Instead of asking Claude to summarize a video or draft a commit message (burning
 - `/v23cc:commit` — generate a git commit message from staged changes
 - `/v23cc:sync-docs` — update README.md and CLAUDE.md using local LLM
 - `/v23cc:pr` — generate a PR title and description from branch diff
+- **Atlassian MCP** — search Jira and Confluence directly in Claude Code via a local MCP server
 
 ## Requirements
 
@@ -117,6 +118,54 @@ bash ~/.v23cc/bin/pr.sh --base develop
 # Show config
 bash ~/.v23cc/bin/config.sh
 ```
+
+## Atlassian MCP (Jira & Confluence)
+
+v23cc includes a local MCP server that integrates Jira and Confluence directly into Claude Code. No slash commands needed — just talk to Claude naturally.
+
+### Setup
+
+1. Install and restart Claude Code:
+   ```bash
+   npx v23cc@latest --global
+   # Restart Claude Code to load the MCP server
+   ```
+
+2. Configure your Atlassian credentials once:
+   > "init jira with domain `mycompany`, email `you@company.com`, token `your-api-token`"
+
+   Generate an API token at [id.atlassian.com/manage-profile/security/api-tokens](https://id.atlassian.com/manage-profile/security/api-tokens).
+
+### Usage
+
+Just ask Claude naturally — no commands to remember:
+
+| What you say | What happens |
+|---|---|
+| "search jira for ocr" | Searches Jira, groups results by Bug/Story/Task, writes `v23cc/jira-<date>-<time>.md` |
+| "search jira for payment bugs in project CORE" | Filtered by project and type |
+| "search confluence for deployment guide" | Fetches pages, summarizes each via local LLM, writes `v23cc/confluence-<date>-<time>.md` |
+
+Results are written as markdown files to the `v23cc/` folder in your project (git-ignored automatically).
+
+### Jira tool parameters
+
+| Parameter | Description | Default |
+|---|---|---|
+| `query` | Search text | required |
+| `project` | Project key filter (e.g. `CORE`) | — |
+| `max` | Max results | 20 |
+| `type` | Issue type: `Bug`, `Story`, `Task` | — |
+
+### Confluence tool parameters
+
+| Parameter | Description | Default |
+|---|---|---|
+| `query` | Search text | required |
+| `space` | Space key filter | — |
+| `max` | Max results | 10 |
+
+> **Note:** Confluence summaries require a local LLM server running (configured via `/v23cc:model`). If no model is active, raw content is shown instead.
 
 ## Uninstall
 
