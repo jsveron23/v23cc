@@ -115,17 +115,18 @@ function getOutputDir() {
 
 // ─── Tool: jira_search ────────────────────────────────────────────────────────
 
-async function jiraSearch({ query, project, max = 20, type }) {
+async function jiraSearch({ query, project, max = 20, type, assignee }) {
   const atlassian = getAtlassianConfig();
   if (!atlassian) throw new Error('Atlassian not configured. Run jira_init first.');
 
   const { domain, email, token } = atlassian;
   const auth = makeAuthHeader(email, token);
 
-  let jql = `text ~ "${query}"`;
+  let jql = query ? `text ~ "${query}"` : 'ORDER BY updated DESC';
+  if (assignee) jql = (query ? jql + ` AND ` : '') + `assignee = "${assignee}"`;
   if (project) jql += ` AND project = "${project}"`;
   if (type) jql += ` AND issuetype = "${type}"`;
-  jql += ' ORDER BY updated DESC';
+  if (!jql.includes('ORDER BY')) jql += ' ORDER BY updated DESC';
 
   const url =
     `https://${domain}.atlassian.net/rest/api/3/search/jql` +
@@ -147,7 +148,8 @@ async function jiraSearch({ query, project, max = 20, type }) {
   const { date, time } = getTimestamp();
   const displayTime = time.replace(/(\d{2})(\d{2})(\d{2})/, '$1:$2:$3');
 
-  let md = `# Jira Search: "${query}"\n\n`;
+  const searchLabel = [query, assignee ? `assignee:${assignee}` : ''].filter(Boolean).join(' ');
+  let md = `# Jira Search: "${searchLabel}"\n\n`;
   md += `**Date:** ${date} ${displayTime}  \n`;
   md += `**Total:** ${issues.length} issues\n\n`;
 
@@ -281,12 +283,13 @@ server.setRequestHandler(ListToolsRequestSchema, async () => ({
       inputSchema: {
         type: 'object',
         properties: {
-          query: { type: 'string', description: 'Search query text' },
+          query: { type: 'string', description: 'Search query text (optional if assignee is set)' },
           project: { type: 'string', description: 'Project key filter (optional)' },
           max: { type: 'number', description: 'Max results (default 20)' },
           type: { type: 'string', description: 'Issue type filter: Bug, Story, Task (optional)' },
+          assignee: { type: 'string', description: 'Assignee display name filter (optional)' },
         },
-        required: ['query'],
+        required: [],
       },
     },
     {
