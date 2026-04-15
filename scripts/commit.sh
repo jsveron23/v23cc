@@ -25,9 +25,6 @@ else
 fi
 
 DIFF=$(git diff --cached)
-if [ -z "$DIFF" ]; then
-  DIFF=$(git diff)
-fi
 
 if [ -z "$DIFF" ]; then
   echo "Nothing to commit — working tree is clean."
@@ -43,7 +40,6 @@ $STYLE_RULES
 - One line only, under $MAX characters
 - Focus on what changed and why, not which files were touched
 - Match the tone and style of the recent commits shown below
-
 Recent commits (for style reference):
 $LOG
 
