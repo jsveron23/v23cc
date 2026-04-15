@@ -71,10 +71,20 @@ CONFIGS+=$(read_if_exists "pom.xml")
 CONFIGS+=$(read_if_exists "Makefile")
 CONFIGS+=$(read_if_exists "CMakeLists.txt")
 
+SOURCES=""
+while IFS= read -r file; do
+  [ -z "$file" ] && continue
+  SOURCES+="=== $file ==="$'\n'
+  SOURCES+="$(head -10 "$REPO_ROOT/$file")"$'\n\n'
+done <<< "$TREE"
+
 CONTEXT="=== File tree ===
 $TREE
 
-$CONFIGS"
+$CONFIGS
+
+=== Source snippets (first 10 lines each) ===
+$SOURCES"
 
 echo "Updating README.md..."
 
