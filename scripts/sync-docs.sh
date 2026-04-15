@@ -56,7 +56,8 @@ done
 TREE=$(find "$REPO_ROOT" \
   -not \( -path "*/node_modules/*" -o -path "*/.git/*" -o -path "*/target/*" \
          -o -path "*/dist/*" -o -path "*/.cargo/*" -o -path "*/coverage/*" \
-         -o -path "*/__pycache__/*" -o -path "*/.venv/*" -o -path "*/vendor/*" \) \
+         -o -path "*/__pycache__/*" -o -path "*/.venv/*" -o -path "*/vendor/*" \
+         -o -path "*/.*/*" \) \
   -type f \( "${FIND_NAME[@]}" \) \
   | sed "s|$REPO_ROOT/||" | sort)
 
@@ -100,7 +101,7 @@ Instructions:
 - Human-facing documentation
 - Explain what the project does and how to run it
 - Keep the existing structure; update what is outdated or missing
-- Compare the source snippets against the current README — ensure every public feature is documented
+- If the source code contains features not documented in the current README, add them
 - Do not add fabricated details — only use what the source code shows
 - Output the full updated README.md content only — no explanation, no markdown code fences"
 else
