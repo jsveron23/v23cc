@@ -105,7 +105,7 @@ $MISSING"
 echo "Updating README.md..."
 
 if [ -f "$README_FILE" ]; then
-  README_SYSTEM="You are updating a project's README.md based on its current source code.
+  README_SYSTEM="You are a technical writer. Update the project's README.md based on its current source code.
 
 Instructions:
 - Human-facing documentation
@@ -120,7 +120,7 @@ $MISSING_SECTION
 === Current README.md ===
 $(cat "$README_FILE")"
 else
-  README_SYSTEM="You are creating a README.md for a new project based on its source code.
+  README_SYSTEM="You are a technical writer. Create a README.md for a new project based on its source code.
 
 Instructions:
 - Human-facing documentation
@@ -142,7 +142,7 @@ fi
 
 echo "Updating CLAUDE.md..."
 
-CLAUDE_SYSTEM="You are updating a project's CLAUDE.md (AI-facing docs) based on its current source code.
+CLAUDE_SYSTEM="You are an AI documentation specialist. Update the project's CLAUDE.md (AI-facing docs) based on its current source code.
 
 Instructions:
 - AI-facing documentation only — keep it under $MAX_LINES lines

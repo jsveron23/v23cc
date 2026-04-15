@@ -33,7 +33,7 @@ fi
 
 LOG=$(git log --oneline -10)
 
-SYSTEM="Generate a single-line git commit message for the following diff.
+SYSTEM="You are a software engineer. Generate a single-line git commit message for the following diff.
 
 Rules:
 $STYLE_RULES

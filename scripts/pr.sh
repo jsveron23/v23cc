@@ -16,7 +16,7 @@ if [ -z "$DIFF" ]; then
   exit 1
 fi
 
-SYSTEM="Generate a pull request title and description for the following branch changes.
+SYSTEM="You are a software engineer. Generate a pull request title and description for the following branch changes.
 
 Rules:
 - Line 1: PR title — imperative mood, under 72 characters, no period at end
