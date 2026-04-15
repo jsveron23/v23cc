@@ -123,18 +123,18 @@ fi
 echo "Summarizing with LLM..."
 echo ""
 
-RESULT=$(printf '%s' "You are a content summarizer. Summarize the following YouTube video transcript in $LANG_NAME.
-
-=== Video: $TITLE ===
-$TRANSCRIPT
+SYSTEM="You are a content summarizer. Summarize the following YouTube video transcript in $LANG_NAME.
 
 Instructions:
 - Lead with the core topic and conclusion
 - Organize key points as a structured list with headers
 - Include notable quotes or figures if present
-- Keep summary under ${PERCENT}%% of original length
+- Keep summary under ${PERCENT}% of original length
 - Write entirely in $LANG_NAME
-- No preamble." | MAX_TOKENS=4000 ~/.v23cc/call_local_llm.py)
+- No preamble."
+
+RESULT=$(printf '%s' "=== Video: $TITLE ===
+$TRANSCRIPT" | SYSTEM="$SYSTEM" MAX_TOKENS=4000 ~/.v23cc/call_local_llm.py)
 
 echo "$RESULT"
 
