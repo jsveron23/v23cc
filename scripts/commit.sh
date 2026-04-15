@@ -33,20 +33,21 @@ fi
 
 LOG=$(git log --oneline -10)
 
-RESULT=$(printf '%s' "Generate a single-line git commit message for the following diff.
+SYSTEM="Generate a single-line git commit message for the following diff.
 
 Rules:
 $STYLE_RULES
 - One line only, under $MAX characters
 - Focus on what changed and why, not which files were touched
 - Match the tone and style of the recent commits shown below
-Recent commits (for style reference):
+
+Output the commit message only — no explanation, no quotes, no extra lines."
+
+RESULT=$(printf '%s' "Recent commits (for style reference):
 $LOG
 
 Diff:
-$DIFF
-
-Output the commit message only — no explanation, no quotes, no extra lines." | ~/.v23cc/call_local_llm.py)
+$DIFF" | SYSTEM="$SYSTEM" ~/.v23cc/call_local_llm.py)
 
 if [ -z "$RESULT" ]; then
   echo "Error: LLM returned empty result — commit aborted." >&2
