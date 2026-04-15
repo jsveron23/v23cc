@@ -10,10 +10,10 @@
 
 ## Architecture
 
-- **Command Format**: Markdown files in `/commands/v23cc/` define slash commands in Claude Code format
-- **Installer**: `bin/install.js` copies commands to `~/.claude/commands/` (global) or `./.claude/commands/` (local)
-- **Local LLM**: Commands pipe prompts to `~/.v23cc/call_local_llm.py` (OpenAI-compatible endpoint, mlx-lm recommended)
-- **Config**: `~/.v23cc/config.json` stores active model preset and port configuration
+- **Command Format**: Markdown files in `/commands/v23cc/` define slash commands in Claude Code format.
+- **Installer**: `bin/install.js` handles installation paths (global/local).
+- **Local LLM**: Commands pipe prompts to a local endpoint (e.g., `mlx-lm` recommended) for inference.
+- **Config**: `~/.v23cc/config.json` stores active model preset and port configuration.
 
 ## Commands
 
@@ -21,6 +21,11 @@
 - **`/v23cc:youtube`** — Fetch and summarize YouTube video subtitles in any language
 - **`/v23cc:commit`** — Generate git commit messages from staged changes
 - **`/v23cc:sync-docs`** — Regenerate README.md and CLAUDE.md using local LLM context
+- **`/v23cc:pr`** — Generate PR title and description from branch diff
+
+## Rules
+
+- Do not claim files are outdated or out of sync without verifying first
 
 ## Codebase Notes
 
