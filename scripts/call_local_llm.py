@@ -6,6 +6,7 @@ Env vars:
   PORT        — override server port (skips config file lookup)
   MAX_TOKENS  — max output tokens (default 2000)
   IMAGE_PATH  — optional path to an image file (enables vision mode)
+  SYSTEM      — optional system message (prepended before the user message)
 """
 
 import sys
@@ -51,9 +52,16 @@ else:
 model = os.environ.get("MODEL") or preset_model or "mlx-community/gemma-4-e4b-it-4bit"
 port = os.environ.get("PORT") or (str(preset_port) if preset_port else "9000")
 
+system_prompt = os.environ.get("SYSTEM", "")
+
+messages = []
+if system_prompt:
+    messages.append({"role": "system", "content": system_prompt})
+messages.append({"role": "user", "content": content})
+
 payload = json.dumps({
     "model": model,
-    "messages": [{"role": "user", "content": content}],
+    "messages": messages,
     "max_tokens": int(os.environ.get("MAX_TOKENS", 2000))
 }).encode()
 
