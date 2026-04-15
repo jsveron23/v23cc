@@ -173,7 +173,8 @@ function install(targetDir) {
   console.log('  /v23cc:youtube — Summarize a YouTube video');
   console.log('  /v23cc:model  — Manage local LLM presets');
   console.log('  /v23cc:commit    — Generate a git commit message');
-  console.log('  /v23cc:sync-docs — Update README.md and CLAUDE.md\n');
+  console.log('  /v23cc:sync-docs — Update README.md and CLAUDE.md');
+  console.log('  /v23cc:pr        — Generate a PR title and description\n');
 }
 
 function uninstall(targetDir) {

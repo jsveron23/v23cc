@@ -56,7 +56,8 @@ done
 TREE=$(find "$REPO_ROOT" \
   -not \( -path "*/node_modules/*" -o -path "*/.git/*" -o -path "*/target/*" \
          -o -path "*/dist/*" -o -path "*/.cargo/*" -o -path "*/coverage/*" \
-         -o -path "*/__pycache__/*" -o -path "*/.venv/*" -o -path "*/vendor/*" \) \
+         -o -path "*/__pycache__/*" -o -path "*/.venv/*" -o -path "*/vendor/*" \
+         -o -path "*/.*/*" \) \
   -type f \( "${FIND_NAME[@]}" \) \
   | sed "s|$REPO_ROOT/||" | sort)
 
@@ -71,10 +72,35 @@ CONFIGS+=$(read_if_exists "pom.xml")
 CONFIGS+=$(read_if_exists "Makefile")
 CONFIGS+=$(read_if_exists "CMakeLists.txt")
 
+SOURCES=""
+while IFS= read -r file; do
+  [ -z "$file" ] && continue
+  SOURCES+="=== $file ==="$'\n'
+  SOURCES+="$(head -10 "$REPO_ROOT/$file")"$'\n\n'
+done <<< "$TREE"
+
 CONTEXT="=== File tree ===
 $TREE
 
-$CONFIGS"
+$CONFIGS
+
+=== Source snippets (first 10 lines each) ===
+$SOURCES"
+
+MISSING=""
+if [ -f "$README_FILE" ]; then
+  README_CONTENT=$(cat "$README_FILE")
+  while IFS= read -r file; do
+    [ -z "$file" ] && continue
+    name=$(basename "$file" | sed 's/\..*//')
+    echo "$README_CONTENT" | grep -qi "\b$name\b" || MISSING+="- $file"$'\n'
+  done <<< "$TREE"
+fi
+
+MISSING_SECTION=""
+[ -n "$MISSING" ] && MISSING_SECTION="
+=== Files not yet documented in the README ===
+$MISSING"
 
 echo "Updating README.md..."
 
@@ -82,6 +108,7 @@ if [ -f "$README_FILE" ]; then
   README_PROMPT="You are updating a project's README.md based on its current source code.
 
 $CONTEXT
+$MISSING_SECTION
 
 === Current README.md ===
 $(cat "$README_FILE")
@@ -89,7 +116,8 @@ $(cat "$README_FILE")
 Instructions:
 - Human-facing documentation
 - Explain what the project does and how to run it
-- Keep the existing structure; update only what is outdated or missing
+- Keep the existing structure; update what is outdated or missing
+- Add documentation for any files listed under 'Files not yet documented' if they are user-facing
 - Do not add fabricated details — only use what the source code shows
 - Output the full updated README.md content only — no explanation, no markdown code fences"
 else

@@ -9,7 +9,8 @@ Instead of asking Claude to summarize a video or draft a commit message (burning
 - `/v23cc:model` — manage which local model preset is active
 - `/v23cc:youtube` — fetch subtitles from a YouTube video and summarize them in any language
 - `/v23cc:commit` — generate a git commit message from staged changes
-- `/v23cc:sync-docs` — Update README.md and CLAUDE.md using local LLM
+- `/v23cc:sync-docs` — update README.md and CLAUDE.md using local LLM
+- `/v23cc:pr` — generate a PR title and description from branch diff
 
 ## Requirements
 
@@ -17,6 +18,7 @@ Instead of asking Claude to summarize a video or draft a commit message (burning
 - **Python 3** — for the local LLM caller script (installed automatically to `~/.v23cc/`)
 - **Local LLM server** — an OpenAI-compatible endpoint running locally (e.g. [mlx-lm](https://github.com/ml-explore/mlx-lm) on port 9000)
 - **yt-dlp** — required for `/v23cc:youtube` (`pip install yt-dlp`)
+- **gh** — required for `/v23cc:pr` ([GitHub CLI](https://cli.github.com/))
 
 ## Install
 
@@ -38,7 +40,8 @@ npx v23cc@latest --local
 | `/v23cc:model [list\|use\|add\|remove]` | Manage local LLM model presets |
 | `/v23cc:youtube <URL> [--lang ko] [--percent 20]` | Summarize a YouTube video using local LLM |
 | `/v23cc:commit [--max 72] [--no-prefix] [--only-msg] [--all]` | Generate and commit using local LLM |
-| `/v23cc:sync-docs` | Update README.md and CLAUDE.md using local LLM |
+| `/v23cc:sync-docs [--lines 100] [--keep "section name"]` | Update README.md and CLAUDE.md using local LLM |
+| `/v23cc:pr [--base develop] [--only-msg]` | Generate a PR title and description using the local LLM |
 
 ## Workflow
 
@@ -66,6 +69,18 @@ npx v23cc@latest --local
 
 # Stage all files then commit
 /v23cc:commit --all
+
+# Update README.md and CLAUDE.md
+/v23cc:sync-docs
+
+# Generate PR title and description
+/v23cc:pr
+
+# Generate PR against a specific base branch
+/v23cc:pr --base main
+
+# Print PR message only, no PR creation
+/v23cc:pr --only-msg
 ```
 
 ## Direct shell usage
@@ -92,6 +107,10 @@ bash ~/.v23cc/bin/commit.sh --all
 # Update README.md and CLAUDE.md
 bash ~/.v23cc/bin/sync-docs.sh
 bash ~/.v23cc/bin/sync-docs.sh --lines 80 --keep "Architecture"
+
+# Generate PR title/description
+bash ~/.v23cc/bin/pr.sh
+bash ~/.v23cc/bin/pr.sh --base develop
 ```
 
 ## Uninstall

@@ -5,6 +5,8 @@ allowed-tools: Bash
 model: haiku
 ---
 
+Do not stage files manually — staging only happens via the `--all` flag.
+
 **Usage:** `/v23cc:commit [--max 72] [--no-prefix] [--only-msg] [--all]`
 
 Run the following command via the Bash tool, passing `$ARGUMENTS` as-is:
