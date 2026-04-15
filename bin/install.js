@@ -11,7 +11,9 @@ const isUninstall = args.includes('--uninstall');
 
 const COMMANDS_SRC = path.join(__dirname, '..', 'commands');
 const SCRIPTS_SRC = path.join(__dirname, '..', 'scripts');
+const MCP_SRC = path.join(__dirname, '..', 'mcp');
 const V23CC_BIN = path.join(os.homedir(), '.v23cc', 'bin');
+const V23CC_MCP = path.join(os.homedir(), '.v23cc', 'mcp');
 
 function promptChoice() {
   const readline = require('readline');
@@ -151,6 +153,81 @@ function uninstallScripts() {
   }
 }
 
+function installMcp(settingsDir) {
+  if (!fs.existsSync(MCP_SRC)) return;
+  fs.mkdirSync(V23CC_MCP, { recursive: true });
+  const entries = fs.readdirSync(MCP_SRC).filter((f) => f.endsWith('.js'));
+  for (const file of entries) {
+    const src = path.join(MCP_SRC, file);
+    const dest = path.join(V23CC_MCP, file);
+    fs.copyFileSync(src, dest);
+    fs.chmodSync(dest, 0o755);
+    console.log(`  ✓ ~/.v23cc/mcp/${file}`);
+  }
+  // Write package.json and install deps so server is self-contained
+  const mcpPkg = { dependencies: { '@modelcontextprotocol/sdk': '^1' } };
+  fs.writeFileSync(path.join(V23CC_MCP, 'package.json'), JSON.stringify(mcpPkg, null, 2) + '\n', 'utf8');
+  console.log('  ✓ installing MCP server dependencies...');
+  require('child_process').execSync('npm install --production --silent', { cwd: V23CC_MCP, stdio: 'inherit' });
+  console.log('  ✓ MCP server dependencies installed');
+  registerMcp();
+}
+
+function registerMcp() {
+  const serverPath = path.join(os.homedir(), '.v23cc', 'mcp', 'atlassian-server.js');
+  const { execSync } = require('child_process');
+  try {
+    execSync(`claude mcp add -s user v23cc-atlassian node ${serverPath}`, { stdio: 'pipe' });
+    console.log('  ✓ registered v23cc-atlassian MCP server (user scope)');
+  } catch (e) {
+    // Fallback: write directly to settings.json
+    const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
+    let settings = {};
+    if (fs.existsSync(settingsPath)) {
+      try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')); } catch {}
+    }
+    if (!settings.mcpServers) settings.mcpServers = {};
+    settings.mcpServers['v23cc-atlassian'] = { command: 'node', args: [serverPath] };
+    fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
+    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
+    console.log('  ✓ registered v23cc-atlassian MCP server in ~/.claude/settings.json');
+  }
+}
+
+function uninstallMcp() {
+  // Remove files
+  if (fs.existsSync(V23CC_MCP)) {
+    const entries = fs.readdirSync(V23CC_MCP).filter((f) => f.endsWith('.js'));
+    for (const file of entries) {
+      const dest = path.join(V23CC_MCP, file);
+      fs.unlinkSync(dest);
+      console.log(`  ✗ removed ~/.v23cc/mcp/${file}`);
+    }
+  }
+  // Remove via claude CLI
+  const { execSync } = require('child_process');
+  try {
+    execSync('claude mcp remove v23cc-atlassian -s user', { stdio: 'pipe' });
+    console.log('  ✗ removed v23cc-atlassian MCP server');
+  } catch {}
+}
+
+function createOutputDir() {
+  const gitignorePath = path.join(process.cwd(), '.gitignore');
+  let content = fs.existsSync(gitignorePath) ? fs.readFileSync(gitignorePath, 'utf8') : '';
+  const outDir = path.join(process.cwd(), 'v23cc');
+  if (!fs.existsSync(outDir)) {
+    fs.mkdirSync(outDir, { recursive: true });
+    console.log('  ✓ created v23cc/');
+  }
+  const entry = '/v23cc/';
+  if (!content.split('\n').some((line) => line.trim() === entry)) {
+    content = content.endsWith('\n') || content === '' ? content + entry + '\n' : content + '\n' + entry + '\n';
+    fs.writeFileSync(gitignorePath, content, 'utf8');
+    console.log('  ✓ added /v23cc/ to .gitignore');
+  }
+}
+
 function migrateConfig() {
   const configPath = path.join(os.homedir(), '.v23cc', 'config.json');
   if (!fs.existsSync(configPath)) return;
@@ -182,6 +259,8 @@ function install(targetDir) {
   }
 
   installScripts();
+  installMcp();
+  createOutputDir();
   migrateConfig();
 
   const pkg = require(path.join(__dirname, '..', 'package.json'));
@@ -190,12 +269,13 @@ function install(targetDir) {
 
   console.log(`\n✅ v23cc installed to ${targetDir}`);
   console.log('\nAvailable commands in Claude Code:');
-  console.log('  /v23cc:youtube — Summarize a YouTube video');
-  console.log('  /v23cc:model  — Manage local LLM presets');
-  console.log('  /v23cc:commit    — Generate a git commit message');
-  console.log('  /v23cc:sync-docs — Update README.md and CLAUDE.md');
-  console.log('  /v23cc:pr        — Generate a PR title and description');
-  console.log('  /v23cc:config    — Show config list\n');
+  console.log('  /v23cc:youtube    — Summarize a YouTube video');
+  console.log('  /v23cc:model      — Manage local LLM presets');
+  console.log('  /v23cc:commit     — Generate a git commit message');
+  console.log('  /v23cc:sync-docs  — Update README.md and CLAUDE.md');
+  console.log('  /v23cc:pr         — Generate a PR title and description');
+  console.log('  /v23cc:config     — Show config list');
+  console.log('  /v23cc:atlassian  — Set up Jira & Confluence credentials\n');
 }
 
 function uninstall(targetDir) {
@@ -215,6 +295,7 @@ function uninstall(targetDir) {
   }
 
   uninstallScripts();
+  uninstallMcp();
   unregisterHook();
 
   const hookDest = path.join(os.homedir(), '.v23cc', 'check-update.js');

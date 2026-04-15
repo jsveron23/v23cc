@@ -1,6 +1,6 @@
 {
   "name": "v23cc",
-  "version": "0.5.0",
+  "version": "0.6.0",
   "description": "A lightweight Claude Code workflow system by jsveron23",
   "keywords": [
     "claude-code",
@@ -16,6 +16,7 @@
   "files": [
     "bin/",
     "commands/",
+    "mcp/",
     "README.md",
     "LICENSE",
     "scripts/"
@@ -35,6 +36,9 @@
     "trailingComma": "es5",
     "bracketSpacing": true,
     "proseWrap": "always"
+  },
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1"
   },
   "devDependencies": {
     "prettier": "^3"
