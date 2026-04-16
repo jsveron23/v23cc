@@ -1,4 +1,4 @@
-# v23cc
+# v23cc &middot; [![npm](https://img.shields.io/npm/v/v23cc)](https://www.npmjs.com/package/v23cc)
 
 A set of Claude Code slash commands that offload repetitive tasks to a local LLM — no cloud API calls, no tokens spent on boilerplate.
 
