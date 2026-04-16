@@ -25,6 +25,7 @@ v23cc is a lightweight Claude Code workflow system that uses local LLM inference
 - **`/v23cc:pr`**: Generate a Pull Request title and description using the local LLM.
 - **`/v23cc:branch`**: Create, switch, rename, track, or list git branches (create, switch, rename, track, list, current subcommands).
 - **`/v23cc:atlassian`**: Set up and manage Jira & Confluence credentials for MCP integration.
+- **`/v23cc:jira`**: Analyze a Jira issue and suggest implementation approach using local LLM (`--deep` for source snippets, `--note` for extra context).
 
 ## Rules
 

@@ -56,16 +56,51 @@ if [ -n "$ONLY_MSG" ]; then
   echo ""
 else
   BRANCH=$(git rev-parse --abbrev-ref HEAD)
-  if ! git config "branch.${BRANCH}.remote" > /dev/null 2>&1; then
+  if git config "branch.${BRANCH}.remote" > /dev/null 2>&1; then
+    # Case 1: Remote exists — push latest commits
+    set +e
+    git push
+    PUSH_EXIT=$?
+    set -e
+    if [ $PUSH_EXIT -ne 0 ]; then
+      # Case 2: Push failed (diverged/rejected) — guide user
+      echo ""
+      echo "Push failed — remote branch may have diverged."
+      echo "To force push: git push --force-with-lease"
+      exit 1
+    fi
+  else
+    # Case 3: No remote — create tracking branch
     git push -u origin "$BRANCH"
   fi
 
-  if gh pr create --base "$BASE" --title "$TITLE" --body "$BODY"; then
+  PR_NUMBER=$(gh pr view --json number,state -q 'select(.state == "OPEN") | .number' 2>/dev/null || true)
+  if [ -n "$PR_NUMBER" ]; then
+    # PR exists — backup old body into collapsible section, then update
+    OLD_BODY=$(gh pr view "$PR_NUMBER" --json body -q '.body')
+    if [ -n "$OLD_BODY" ]; then
+      BODY="$BODY
+
+<details>
+<summary>Previous description</summary>
+
+$OLD_BODY
+
+</details>"
+    fi
+    gh pr edit "$PR_NUMBER" --title "$TITLE" --body "$BODY"
+    PR_URL=$(gh pr view --json url -q '.url')
     echo ""
-    echo "PR created."
+    echo "PR #${PR_NUMBER} updated: $PR_URL"
   else
-    echo ""
-    echo "PR creation failed."
-    exit 1
+    # No PR — create one
+    if gh pr create --base "$BASE" --title "$TITLE" --body "$BODY"; then
+      echo ""
+      echo "PR created."
+    else
+      echo ""
+      echo "PR creation failed."
+      exit 1
+    fi
   fi
 fi

@@ -55,8 +55,34 @@ case "$ACTION" in
       echo "Usage: branch.sh track <branch> or track <remote/branch>"
       exit 1
     fi
+
+    track_branch() {
+      local REMOTE="$1"
+      local BRANCH_NAME="$2"
+
+      git fetch "$REMOTE" "$BRANCH_NAME"
+
+      if git show-ref --verify --quiet "refs/heads/$BRANCH_NAME"; then
+        PREV_BRANCH=$(git rev-parse --abbrev-ref HEAD)
+        PREV_HASH=$(git rev-parse --short HEAD)
+        git checkout "$BRANCH_NAME"
+        git branch -u "${REMOTE}/${BRANCH_NAME}"
+        echo ""
+        echo "Branch '$BRANCH_NAME' already exists. Switched and set upstream to '${REMOTE}/${BRANCH_NAME}'."
+        AHEAD=$(git rev-list --count "${REMOTE}/${BRANCH_NAME}..HEAD" 2>/dev/null || echo 0)
+        BEHIND=$(git rev-list --count "HEAD..${REMOTE}/${BRANCH_NAME}" 2>/dev/null || echo 0)
+        if [ "$AHEAD" -gt 0 ] || [ "$BEHIND" -gt 0 ]; then
+          echo "  ^ $AHEAD ahead, v $BEHIND behind ${REMOTE}/${BRANCH_NAME}"
+        fi
+        echo ""
+        echo "To rollback: git checkout $PREV_BRANCH  # was at $PREV_HASH"
+      else
+        git checkout -t "${REMOTE}/${BRANCH_NAME}"
+      fi
+    }
+
     if [[ "$REF" == */* ]]; then
-      git checkout -t "$REF"
+      track_branch "${REF%%/*}" "${REF#*/}"
     else
       REMOTES=$(git remote)
       REMOTE_COUNT=$(echo "$REMOTES" | grep -c . || true)
@@ -68,7 +94,7 @@ case "$ACTION" in
       else
         REMOTE="origin"
       fi
-      git checkout -t "${REMOTE}/${REF}"
+      track_branch "$REMOTE" "$REF"
     fi
     ;;
   list)

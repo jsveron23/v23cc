@@ -1,7 +1,7 @@
 {
   "name": "v23cc",
-  "version": "0.8.0",
-  "description": "A lightweight Claude Code workflow system by jsveron23",
+  "version": "0.9.3",
+  "description": "A lightweight Claude Code workflow system by Tony Jin<jsveron23@gmail.com>",
   "keywords": [
     "claude-code",
     "workflow",
