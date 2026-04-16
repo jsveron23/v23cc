@@ -2,11 +2,10 @@
 set -euo pipefail
 
 ARGS="${*:-}"
-BASE="develop"
+BASE=$(gh repo view --json defaultBranchRef -q '.defaultBranchRef.name' 2>/dev/null || echo "main")
 ONLY_MSG=""
 
 [[ "$ARGS" == *"--only-msg"* ]] && ONLY_MSG="1"
-[[ "$ARGS" =~ --base[[:space:]]+([^[:space:]]+) ]] && BASE="${BASH_REMATCH[1]}"
 
 LOG=$(git log --oneline "${BASE}..HEAD" 2>/dev/null || true)
 DIFF=$(git diff "${BASE}...HEAD" 2>/dev/null || true)
