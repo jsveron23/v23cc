@@ -44,7 +44,7 @@ npx v23cc@latest --local
 | `/v23cc:youtube <URL> [--lang ko] [--percent 20]` | Summarize a YouTube video using local LLM |
 | `/v23cc:commit [--max 72] [--no-prefix] [--only-msg] [--all]` | Generate and commit using local LLM |
 | `/v23cc:sync-docs [--lines 100] [--keep "section name"]` | Update README.md and CLAUDE.md using local LLM |
-| `/v23cc:pr [--base develop] [--only-msg]` | Generate a PR title and description using the local LLM |
+| `/v23cc:pr [--only-msg]` | Generate a PR title and description using the local LLM |
 | `/v23cc:atlassian [init\|status]` | Set up Jira & Confluence credentials |
 
 ## Workflow
@@ -80,9 +80,6 @@ npx v23cc@latest --local
 # Generate PR title and description
 /v23cc:pr
 
-# Generate PR against a specific base branch
-/v23cc:pr --base main
-
 # Print PR message only, no PR creation
 /v23cc:pr --only-msg
 ```
@@ -114,7 +111,6 @@ bash ~/.v23cc/bin/sync-docs.sh --lines 80 --keep "Architecture"
 
 # Generate PR title/description
 bash ~/.v23cc/bin/pr.sh
-bash ~/.v23cc/bin/pr.sh --base develop
 
 # Show config
 bash ~/.v23cc/bin/config.sh
