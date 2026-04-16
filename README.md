@@ -34,7 +34,12 @@ npx v23cc@latest --global
 
 # Local (current project only)
 npx v23cc@latest --local
+
+# Custom namespace (commands become /wp:commit, /wp:pr, etc.)
+npx v23cc@latest --local --namespace wp
 ```
+
+The `--namespace` flag lets you rename the command prefix to anything you like. The internal tool home (`~/.v23cc/`) stays the same regardless of namespace. Re-installing with a different namespace automatically removes the old one.
 
 ## Commands
 
