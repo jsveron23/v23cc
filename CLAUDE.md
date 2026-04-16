@@ -27,6 +27,7 @@ v23cc is a lightweight Claude Code workflow system that uses local LLM inference
 ## Rules
 
 - Do not claim files are outdated or out of sync without verifying first.
+- When testing or applying scripts, install locally only (`node bin/install.js --local`). Never install globally unless explicitly asked.
 
 ## Codebase Notes
 
