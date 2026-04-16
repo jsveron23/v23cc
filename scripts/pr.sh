@@ -56,7 +56,17 @@ if [ -n "$ONLY_MSG" ]; then
   echo ""
 else
   BRANCH=$(git rev-parse --abbrev-ref HEAD)
-  if ! git config "branch.${BRANCH}.remote" > /dev/null 2>&1; then
+  if git config "branch.${BRANCH}.remote" > /dev/null 2>&1; then
+    # Case 1: Remote exists — push latest commits
+    if ! git push; then
+      # Case 2: Push failed (diverged/rejected) — guide user
+      echo ""
+      echo "Push failed — remote branch may have diverged."
+      echo "To force push: git push --force-with-lease"
+      exit 1
+    fi
+  else
+    # Case 3: No remote — create tracking branch
     git push -u origin "$BRANCH"
   fi
 
