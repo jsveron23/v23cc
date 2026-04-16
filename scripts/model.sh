@@ -5,7 +5,7 @@ CONFIG=~/.v23cc/config.json
 
 show_state() {
   if [ ! -f "$CONFIG" ]; then
-    echo "No config found. Run: /v23cc:model add <name> <model-id> [port]"
+    echo "No config found. Run: /v23cc:model add <name> <model-id> [endpoint]"
     return
   fi
   V23CC_CONFIG="$CONFIG" python3 -c "
@@ -23,7 +23,10 @@ print(f'Active: {active_name}')
 print()
 for name, cfg in models.items():
     marker = '* ' if cfg.get('active') else '  '
-    print(f'{marker}{name}  {cfg[\"model\"]}  port={cfg[\"port\"]}')
+    protocol = cfg.get('protocol', 'http')
+    host = cfg.get('host', 'localhost')
+    port = cfg.get('port', 9000)
+    print(f'{marker}{name}  {cfg[\"model\"]}  {protocol}://{host}:{port}')
 "
 }
 
@@ -55,7 +58,10 @@ for n, cfg in d['models'].items():
 json.dump(d, open(config, 'w'), indent=2)
 print(f'Active preset set to: {name}')
 cfg = d['models'][name]
-print(f'  model={cfg[\"model\"]}  port={cfg[\"port\"]}')
+protocol = cfg.get('protocol', 'http')
+host = cfg.get('host', 'localhost')
+port = cfg.get('port', 9000)
+print(f'  model={cfg[\"model\"]}  {protocol}://{host}:{port}')
 "
     echo ""
     show_state
@@ -64,18 +70,37 @@ print(f'  model={cfg[\"model\"]}  port={cfg[\"port\"]}')
   add)
     NAME="${2:-}"
     MODEL_ID="${3:-}"
-    PORT="${4:-9000}"
+    ENDPOINT="${4:-}"
     if [ -z "$NAME" ] || [ -z "$MODEL_ID" ]; then
-      echo "Usage: /v23cc:model add <name> <model-id> [port]"
+      echo "Usage: /v23cc:model add <name> <model-id> [endpoint]"
       exit 1
     fi
     mkdir -p ~/.v23cc
-    V23CC_CONFIG="$CONFIG" V23CC_NAME="$NAME" V23CC_MODEL="$MODEL_ID" V23CC_PORT="$PORT" python3 -c "
-import json, os
+    V23CC_CONFIG="$CONFIG" V23CC_NAME="$NAME" V23CC_MODEL="$MODEL_ID" V23CC_ENDPOINT="$ENDPOINT" python3 -c "
+import json, os, re, sys
 config = os.environ['V23CC_CONFIG']
 name = os.environ['V23CC_NAME']
 model_id = os.environ['V23CC_MODEL']
-port = int(os.environ['V23CC_PORT'])
+endpoint = os.environ.get('V23CC_ENDPOINT', '').strip()
+
+if re.match(r'^https?://', endpoint):
+    m = re.match(r'^(https?)://([^:/]+)(?::(\d+))?', endpoint)
+    if not m:
+        print(f'Invalid endpoint: {endpoint}', file=sys.stderr)
+        sys.exit(1)
+    protocol = m.group(1)
+    host = m.group(2)
+    port = int(m.group(3)) if m.group(3) else (443 if protocol == 'https' else 80)
+elif re.match(r'^\d+$', endpoint):
+    protocol, host, port = 'http', 'localhost', int(endpoint)
+elif endpoint:
+    m = re.match(r'^([^:]+)(?::(\d+))?$', endpoint)
+    protocol = 'http'
+    host = m.group(1)
+    port = int(m.group(2)) if m.group(2) else 9000
+else:
+    protocol, host, port = 'http', 'localhost', 9000
+
 d = json.load(open(config)) if os.path.exists(config) else {'models': {}}
 if 'active' in d:
     active_name = d.pop('active')
@@ -83,10 +108,10 @@ if 'active' in d:
         cfg['active'] = (n == active_name)
 models = d.setdefault('models', {})
 has_active = any(c.get('active') for c in models.values())
-models[name] = {'model': model_id, 'port': port, 'active': not has_active}
+models[name] = {'model': model_id, 'protocol': protocol, 'host': host, 'port': port, 'active': not has_active}
 json.dump(d, open(config, 'w'), indent=2)
 print(f'Preset added: {name}')
-print(f'  model={model_id}  port={port}')
+print(f'  model={model_id}  {protocol}://{host}:{port}')
 if models[name]['active']:
     print(f'  (set as active)')
 "
@@ -125,7 +150,7 @@ print(f'Removed preset: {name}')
 
   *)
     echo "Unknown command: $CMD"
-    echo "Usage: /v23cc:model [list | use <name> | add <name> <model-id> [port] | remove <name>]"
+    echo "Usage: /v23cc:model [list | use <name> | add <name> <model-id> [endpoint] | remove <name>]"
     exit 1
     ;;
 esac
