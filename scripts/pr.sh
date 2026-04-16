@@ -58,7 +58,11 @@ else
   BRANCH=$(git rev-parse --abbrev-ref HEAD)
   if git config "branch.${BRANCH}.remote" > /dev/null 2>&1; then
     # Case 1: Remote exists — push latest commits
-    if ! git push; then
+    set +e
+    git push
+    PUSH_EXIT=$?
+    set -e
+    if [ $PUSH_EXIT -ne 0 ]; then
       # Case 2: Push failed (diverged/rejected) — guide user
       echo ""
       echo "Push failed — remote branch may have diverged."
