@@ -56,6 +56,9 @@ case "$ACTION" in
       exit 1
     fi
     if [[ "$REF" == */* ]]; then
+      REMOTE="${REF%%/*}"
+      BRANCH="${REF#*/}"
+      git fetch "$REMOTE" "$BRANCH"
       git checkout -t "$REF"
     else
       REMOTES=$(git remote)
@@ -68,6 +71,7 @@ case "$ACTION" in
       else
         REMOTE="origin"
       fi
+      git fetch "$REMOTE" "$REF"
       git checkout -t "${REMOTE}/${REF}"
     fi
     ;;

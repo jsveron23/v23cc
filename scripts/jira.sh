@@ -21,7 +21,9 @@ NOTE=""
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --deep) DEEP_MODE="1"; shift ;;
-    --note) NOTE="$2"; shift 2 ;;
+    --note)
+      if [ $# -lt 2 ]; then echo "Error: --note requires a value"; exit 1; fi
+      NOTE="$2"; shift 2 ;;
     *) shift ;;
   esac
 done
