@@ -34,12 +34,36 @@ case "$ACTION" in
       exit 1
     fi
     ;;
+  track)
+    REF="${1:-}"
+    if [ -z "$REF" ]; then
+      echo "Usage: branch.sh track <branch> or track <remote/branch>"
+      exit 1
+    fi
+    if [[ "$REF" == */* ]]; then
+      git checkout -t "$REF"
+    else
+      REMOTES=$(git remote)
+      REMOTE_COUNT=$(echo "$REMOTES" | grep -c . || true)
+      if [ -z "$REMOTES" ]; then
+        echo "No remote configured."
+        exit 1
+      elif [ "$REMOTE_COUNT" -eq 1 ]; then
+        REMOTE="$REMOTES"
+      else
+        REMOTE="origin"
+      fi
+      git checkout -t "${REMOTE}/${REF}"
+    fi
+    ;;
   *)
-    echo "Usage: branch.sh [create|rename]"
+    echo "Usage: branch.sh [create|rename|track]"
     echo ""
     echo "  create <name>                 Create and switch to a new branch"
     echo "  rename <new-name>             Rename current branch"
     echo "  rename <old-name> <new-name>  Rename another branch"
+    echo "  track <branch>                Track and checkout a remote branch"
+    echo "  track <remote/branch>         Track a branch from a specific remote"
     echo ""
     echo "To delete a branch, run manually: git branch -d <name> (or -D to force)"
     exit 1
