@@ -167,6 +167,24 @@ d = json.loads(os.environ['V23CC_ISSUE_JSON'])
 print((d.get('fields', {}).get('issuetype') or {}).get('name', 'Task'))
 ")
 
+ISSUE_LANG=$(V23CC_ISSUE_JSON="$ISSUE_JSON" python3 -c "
+import json, os, re
+d = json.loads(os.environ['V23CC_ISSUE_JSON'])
+fields = d.get('fields', {})
+summary = fields.get('summary') or ''
+desc = fields.get('description')
+desc_str = str(desc) if isinstance(desc, dict) else (desc or '')
+text = summary + ' ' + desc_str
+if re.search(r'[\uAC00-\uD7AF]', text):
+    print('Korean (한국어)')
+elif re.search(r'[\u3040-\u30FF]', text):
+    print('Japanese (日本語)')
+elif re.search(r'[\u4E00-\u9FFF]', text):
+    print('Chinese (中文)')
+else:
+    print('English')
+")
+
 # --- Gather project context ---
 
 REPO_ROOT="$(git rev-parse --show-toplevel 2>/dev/null || pwd)"
@@ -251,6 +269,7 @@ echo "Analyzing ${ISSUE_KEY} with LLM..."
 echo ""
 
 SYSTEM="You are a senior software architect analyzing a Jira issue for implementation feasibility.
+CRITICAL: You MUST write your ENTIRE response in ${ISSUE_LANG}. Every word, every heading, every sentence must be in ${ISSUE_LANG}. Do not use English unless ${ISSUE_LANG} is English.
 
 Given the Jira issue details and the current project's file structure, provide a structured analysis:
 
@@ -274,11 +293,7 @@ Given the Jira issue details and the current project's file structure, provide a
   - Example: feature/WPN-123-camera-ui-update
 - Output the branch name on its own line inside a code block
 
-## Estimated Effort
-- T-shirt size: XS / S / M / L / XL
-
-Be specific — reference actual files and paths from the project tree. Output in markdown.
-IMPORTANT: Write your entire response in the same language as the Jira issue. If the issue is in Korean, respond in Korean. If in English, respond in English. Match the language exactly."
+Be specific — reference actual files and paths from the project tree. Output in markdown."
 
 RESULT=$(printf '%s' "=== Jira Issue ===
 $ISSUE_DETAILS
