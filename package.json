@@ -8,7 +8,7 @@
     "context-engineering",
     "ai-coding"
   ],
-  "author": "jsveron23",
+  "author": "Tony Jin<jsveron23@gmail.com>",
   "license": "MIT",
   "bin": {
     "v23cc": "./bin/install.js"
