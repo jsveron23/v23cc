@@ -1,13 +1,13 @@
 ---
 name: v23cc:branch
-description: Create, rename, or track a git branch
+description: Create, rename, switch, track, or list git branches
 allowed-tools: Bash
 model: haiku
 ---
 
 **IMPORTANT: ALWAYS run the Bash command below immediately. NEVER skip it or answer from context — the script handles all edge cases itself.**
 
-**Usage:** `/v23cc:branch [create|rename|track] <name>`
+**Usage:** `/v23cc:branch [create|switch|rename|track|list|current]`
 
 Run the following command via the Bash tool, passing `$ARGUMENTS` as-is:
 

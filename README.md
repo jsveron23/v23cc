@@ -11,7 +11,7 @@ Instead of asking Claude to summarize a video or draft a commit message (burning
 - `/v23cc:youtube` — fetch subtitles from a YouTube video and summarize them in any language
 - `/v23cc:commit` — generate a git commit message from staged changes
 - `/v23cc:sync-docs` — update README.md and CLAUDE.md using local LLM
-- `/v23cc:branch` — create, rename, or track a git branch
+- `/v23cc:branch` — create, switch, rename, track, or list git branches
 - `/v23cc:pr` — generate a PR title and description from branch diff
 - **Atlassian MCP** — search Jira and Confluence directly in Claude Code via a local MCP server
 
@@ -45,7 +45,7 @@ npx v23cc@latest --local
 | `/v23cc:youtube <URL> [--lang ko] [--percent 20]` | Summarize a YouTube video using local LLM |
 | `/v23cc:commit [--max 72] [--no-prefix] [--only-msg] [--all]` | Generate and commit using local LLM |
 | `/v23cc:sync-docs [--lines 100] [--keep "section name"]` | Update README.md and CLAUDE.md using local LLM |
-| `/v23cc:branch [create\|rename\|track] <name>` | Create, rename, or track a git branch |
+| `/v23cc:branch [create\|switch\|rename\|track\|list\|current]` | Create, switch, rename, track, or list git branches |
 | `/v23cc:pr [--only-msg]` | Generate a PR title and description using the local LLM |
 | `/v23cc:atlassian [init\|status]` | Set up Jira & Confluence credentials |
 
@@ -94,6 +94,18 @@ npx v23cc@latest --local
 # Track a branch from a specific remote
 /v23cc:branch track upstream/feature/my-feature
 
+# Switch to an existing local branch
+/v23cc:branch switch main
+
+# List local branches
+/v23cc:branch list
+
+# List all branches including remotes
+/v23cc:branch list --all
+
+# Print current branch name
+/v23cc:branch current
+
 # Generate PR title and description
 /v23cc:pr
 
@@ -126,12 +138,16 @@ bash ~/.v23cc/bin/commit.sh --all
 bash ~/.v23cc/bin/sync-docs.sh
 bash ~/.v23cc/bin/sync-docs.sh --lines 80 --keep "Architecture"
 
-# Create, rename, or track a branch
+# Create, switch, rename, track, or list branches
 bash ~/.v23cc/bin/branch.sh create feature/my-feature
+bash ~/.v23cc/bin/branch.sh switch main
 bash ~/.v23cc/bin/branch.sh rename new-name
 bash ~/.v23cc/bin/branch.sh rename old-name new-name
 bash ~/.v23cc/bin/branch.sh track feature/my-feature
 bash ~/.v23cc/bin/branch.sh track upstream/feature/my-feature
+bash ~/.v23cc/bin/branch.sh list
+bash ~/.v23cc/bin/branch.sh list --all
+bash ~/.v23cc/bin/branch.sh current
 
 # Generate PR title/description
 bash ~/.v23cc/bin/pr.sh

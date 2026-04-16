@@ -23,7 +23,7 @@ v23cc is a lightweight Claude Code workflow system that uses local LLM inference
 - **`/v23cc:commit`**: Generate a commit message using the local LLM.
 - **`/v23cc:sync-docs`**: Update `README.md` and `CLAUDE.md` using the local LLM.
 - **`/v23cc:pr`**: Generate a Pull Request title and description using the local LLM.
-- **`/v23cc:branch`**: Create, rename, or track a git branch (create, rename, track subcommands).
+- **`/v23cc:branch`**: Create, switch, rename, track, or list git branches (create, switch, rename, track, list, current subcommands).
 - **`/v23cc:atlassian`**: Set up and manage Jira & Confluence credentials for MCP integration.
 
 ## Rules
