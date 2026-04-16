@@ -40,6 +40,8 @@ case "$ACTION" in
     echo "  create <name>                 Create and switch to a new branch"
     echo "  rename <new-name>             Rename current branch"
     echo "  rename <old-name> <new-name>  Rename another branch"
+    echo ""
+    echo "To delete a branch, run manually: git branch -d <name> (or -D to force)"
     exit 1
     ;;
 esac

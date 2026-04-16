@@ -14,3 +14,9 @@ Run the following command via the Bash tool, passing `$ARGUMENTS` as-is:
 ```
 bash ~/.v23cc/bin/branch.sh $ARGUMENTS
 ```
+
+> **To delete a branch**, run it yourself in terminal — it's too destructive for an AI command:
+> ```
+> git branch -d <name>   # safe (merged only)
+> git branch -D <name>   # force delete
+> ```
