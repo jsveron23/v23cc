@@ -74,12 +74,22 @@ else
     git push -u origin "$BRANCH"
   fi
 
-  if gh pr create --base "$BASE" --title "$TITLE" --body "$BODY"; then
+  PR_NUMBER=$(gh pr view --json number -q '.number' 2>/dev/null || true)
+  if [ -n "$PR_NUMBER" ]; then
+    # PR exists — update it
+    gh pr edit "$PR_NUMBER" --title "$TITLE" --body "$BODY"
+    PR_URL=$(gh pr view --json url -q '.url')
     echo ""
-    echo "PR created."
+    echo "PR #${PR_NUMBER} updated: $PR_URL"
   else
-    echo ""
-    echo "PR creation failed."
-    exit 1
+    # No PR — create one
+    if gh pr create --base "$BASE" --title "$TITLE" --body "$BODY"; then
+      echo ""
+      echo "PR created."
+    else
+      echo ""
+      echo "PR creation failed."
+      exit 1
+    fi
   fi
 fi
