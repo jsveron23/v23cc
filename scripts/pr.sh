@@ -74,9 +74,20 @@ else
     git push -u origin "$BRANCH"
   fi
 
-  PR_NUMBER=$(gh pr view --json number -q '.number' 2>/dev/null || true)
+  PR_NUMBER=$(gh pr view --json number,state -q 'select(.state == "OPEN") | .number' 2>/dev/null || true)
   if [ -n "$PR_NUMBER" ]; then
-    # PR exists — update it
+    # PR exists — backup old body into collapsible section, then update
+    OLD_BODY=$(gh pr view "$PR_NUMBER" --json body -q '.body')
+    if [ -n "$OLD_BODY" ]; then
+      BODY="$BODY
+
+<details>
+<summary>Previous description</summary>
+
+$OLD_BODY
+
+</details>"
+    fi
     gh pr edit "$PR_NUMBER" --title "$TITLE" --body "$BODY"
     PR_URL=$(gh pr view --json url -q '.url')
     echo ""
