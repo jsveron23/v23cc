@@ -142,7 +142,7 @@ YOUTUBE_DIR="$REPO_ROOT/v23cc/youtube"
 DATE=$(date +"%Y%m%d")
 TIME=$(date +"%H%M%S")
 mkdir -p "$YOUTUBE_DIR"
-SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//' | cut -c1-60)
+SLUG=$(printf '%s' "$TITLE" | perl -CSD -pe '$_ = lc($_); s/[^\p{L}\p{N}]+/-/g; s/^-|-$//g;' | cut -c1-60)
 OUTFILE="$YOUTUBE_DIR/${DATE}-${TIME}-${SLUG}.md"
 
 printf '# %s\n\n> Source: %s\n> Language: %s\n> Mode: youtube\n\n%s\n' \
