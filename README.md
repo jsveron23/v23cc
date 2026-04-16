@@ -48,6 +48,7 @@ npx v23cc@latest --local
 | `/v23cc:branch [create\|switch\|rename\|track\|list\|current]` | Create, switch, rename, track, or list git branches |
 | `/v23cc:pr [--only-msg]` | Generate a PR title and description using the local LLM |
 | `/v23cc:atlassian [init\|status]` | Set up Jira & Confluence credentials |
+| `/v23cc:jira <ISSUE-KEY> [--deep] [--note "..."]` | Analyze a Jira issue and suggest implementation approach |
 
 ## Workflow
 
@@ -111,6 +112,15 @@ npx v23cc@latest --local
 
 # Print PR message only, no PR creation
 /v23cc:pr --only-msg
+
+# Analyze a Jira issue for implementation approach
+/v23cc:jira WPN-123
+
+# Deeper analysis with source snippets
+/v23cc:jira WPN-123 --deep
+
+# Add extra context (use @file for file content)
+/v23cc:jira WPN-123 --note "related to WPN-100, must avoid breaking the auth flow"
 ```
 
 ## Direct shell usage
@@ -151,6 +161,11 @@ bash ~/.v23cc/bin/branch.sh current
 
 # Generate PR title/description
 bash ~/.v23cc/bin/pr.sh
+
+# Analyze a Jira issue
+bash ~/.v23cc/bin/jira.sh WPN-123
+bash ~/.v23cc/bin/jira.sh WPN-123 --deep
+bash ~/.v23cc/bin/jira.sh WPN-123 --note "extra context here"
 
 # Show config
 bash ~/.v23cc/bin/config.sh
