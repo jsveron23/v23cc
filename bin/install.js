@@ -275,7 +275,8 @@ function install(targetDir) {
   console.log('  /v23cc:sync-docs  — Update README.md and CLAUDE.md');
   console.log('  /v23cc:pr         — Generate a PR title and description');
   console.log('  /v23cc:config     — Show config list');
-  console.log('  /v23cc:atlassian  — Set up Jira & Confluence credentials\n');
+  console.log('  /v23cc:atlassian  — Set up Jira & Confluence credentials');
+  console.log('  /v23cc:jira       — Analyze a Jira issue for implementation\n');
 }
 
 function uninstall(targetDir) {
