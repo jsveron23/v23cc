@@ -277,7 +277,8 @@ Given the Jira issue details and the current project's file structure, provide a
 ## Estimated Effort
 - T-shirt size: XS / S / M / L / XL
 
-Be specific — reference actual files and paths from the project tree. Output in markdown."
+Be specific — reference actual files and paths from the project tree. Output in markdown.
+IMPORTANT: Write your entire response in the same language as the Jira issue. If the issue is in Korean, respond in Korean. If in English, respond in English. Match the language exactly."
 
 RESULT=$(printf '%s' "=== Jira Issue ===
 $ISSUE_DETAILS
