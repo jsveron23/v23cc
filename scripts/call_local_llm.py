@@ -4,6 +4,8 @@
 Env vars:
   MODEL       — override model name (skips config file lookup)
   PORT        — override server port (skips config file lookup)
+  HOST        — override server host (skips config file lookup)
+  PROTOCOL    — override protocol: http or https (skips config file lookup)
   MAX_TOKENS  — max output tokens (default 2000)
   IMAGE_PATH  — optional path to an image file (enables vision mode)
   SYSTEM      — optional system message (prepended before the user message)
@@ -18,7 +20,7 @@ import urllib.request
 def load_preset():
     config_path = os.path.expanduser("~/.v23cc/config.json")
     if not os.path.exists(config_path):
-        return None, None
+        return None, None, None, None
     try:
         with open(config_path) as f:
             d = json.load(f)
@@ -29,12 +31,12 @@ def load_preset():
         else:
             preset = next((cfg for cfg in models.values() if cfg.get("active")), None)
         if preset:
-            return preset.get("model"), preset.get("port")
+            return preset.get("model"), preset.get("port"), preset.get("host"), preset.get("protocol")
     except Exception:
         pass
-    return None, None
+    return None, None, None, None
 
-preset_model, preset_port = load_preset()
+preset_model, preset_port, preset_host, preset_protocol = load_preset()
 
 prompt = sys.stdin.read()
 image_path = os.environ.get("IMAGE_PATH", "")
@@ -55,6 +57,8 @@ else:
 
 model = os.environ.get("MODEL") or preset_model or "mlx-community/gemma-4-e4b-it-4bit"
 port = os.environ.get("PORT") or (str(preset_port) if preset_port else "9000")
+host = os.environ.get("HOST") or preset_host or "localhost"
+protocol = os.environ.get("PROTOCOL") or preset_protocol or "http"
 
 system_prompt = os.environ.get("SYSTEM", "")
 
@@ -70,7 +74,7 @@ payload = json.dumps({
 }).encode()
 
 req = urllib.request.Request(
-    f"http://localhost:{port}/v1/chat/completions",
+    f"{protocol}://{host}:{port}/v1/chat/completions",
     data=payload,
     headers={"Content-Type": "application/json"}
 )
@@ -84,7 +88,7 @@ except urllib.error.HTTPError as e:
     print(f"Server error ({e.code}): {body[:500]}", file=sys.stderr)
     sys.exit(1)
 except urllib.error.URLError:
-    print(f"Local server (port {port}) is not running.", file=sys.stderr)
+    print(f"Local server ({protocol}://{host}:{port}) is not running.", file=sys.stderr)
     sys.exit(1)
 except Exception as e:
     print(f"Error: {e}", file=sys.stderr)
