@@ -138,15 +138,15 @@ $TRANSCRIPT" | SYSTEM="$SYSTEM" MAX_TOKENS=4000 ~/.v23cc/call_local_llm.py)
 
 echo "$RESULT"
 
-RESEARCH_DIR="$REPO_ROOT/research"
+YOUTUBE_DIR="$REPO_ROOT/v23cc/youtube"
 DATE=$(date +"%Y%m%d")
 TIME=$(date +"%H%M%S")
-mkdir -p "$RESEARCH_DIR/$DATE"
+mkdir -p "$YOUTUBE_DIR"
 SLUG=$(echo "$TITLE" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g' | sed 's/--*/-/g' | sed 's/^-//;s/-$//' | cut -c1-60)
-OUTFILE="$RESEARCH_DIR/$DATE/${TIME}-youtube-${SLUG}.md"
+OUTFILE="$YOUTUBE_DIR/${DATE}-${TIME}-${SLUG}.md"
 
 printf '# %s\n\n> Source: %s\n> Language: %s\n> Mode: youtube\n\n%s\n' \
   "$TITLE" "$URL" "$LANG_NAME" "$RESULT" > "$OUTFILE"
 
 echo ""
-echo "Saved: research/$DATE/${TIME}-youtube-${SLUG}.md"
+echo "Saved: v23cc/youtube/${DATE}-${TIME}-${SLUG}.md"
