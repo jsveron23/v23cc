@@ -4,10 +4,11 @@ set -euo pipefail
 CONFIG=~/.v23cc/config.json
 
 if [ $# -lt 1 ]; then
-  echo "Usage: jira.sh <ISSUE-KEY> [--deep]"
+  echo "Usage: jira.sh <ISSUE-KEY> [--deep] [--note \"...\"]"
   echo ""
   echo "  ISSUE-KEY  Jira issue key (e.g. WPN-123)"
   echo "  --deep     Include source snippets in project context"
+  echo "  --note     Additional context (text, URLs, related tasks)"
   exit 1
 fi
 
@@ -15,10 +16,12 @@ ISSUE_KEY="$1"
 shift
 
 DEEP_MODE=""
+NOTE=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
     --deep) DEEP_MODE="1"; shift ;;
+    --note) NOTE="$2"; shift 2 ;;
     *) shift ;;
   esac
 done
@@ -286,11 +289,19 @@ Given the Jira issue details and the current project's file structure, provide a
 
 Be specific — reference actual files and paths from the project tree. Output in markdown."
 
+NOTE_SECTION=""
+if [ -n "$NOTE" ]; then
+  NOTE_SECTION="
+
+=== Additional Notes ===
+$NOTE"
+fi
+
 RESULT=$(printf '%s' "=== Jira Issue ===
 $ISSUE_DETAILS
 
 === Project Context ===
-$CONTEXT" | SYSTEM="$SYSTEM" MAX_TOKENS=4000 ~/.v23cc/call_local_llm.py)
+$CONTEXT$NOTE_SECTION" | SYSTEM="$SYSTEM" MAX_TOKENS=4000 ~/.v23cc/call_local_llm.py)
 
 if [ -z "$RESULT" ]; then
   echo "Error: LLM returned empty result." >&2
