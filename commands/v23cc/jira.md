@@ -7,10 +7,9 @@ model: haiku
 
 **IMPORTANT: ALWAYS run the Bash command below immediately. NEVER skip it or answer from context — the script handles all edge cases itself.**
 
-**Usage:** `/v23cc:jira <ISSUE-KEY> [--branch] [--deep]`
+**Usage:** `/v23cc:jira <ISSUE-KEY> [--deep]`
 
 - `ISSUE-KEY` — Jira issue key, e.g. `WPN-123`
-- `--branch` — create a git branch after analysis
 - `--deep` — include source snippets in project context for richer analysis
 
 Run the following command via the Bash tool, passing `$ARGUMENTS` as-is:

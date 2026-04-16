@@ -4,10 +4,9 @@ set -euo pipefail
 CONFIG=~/.v23cc/config.json
 
 if [ $# -lt 1 ]; then
-  echo "Usage: jira.sh <ISSUE-KEY> [--branch] [--deep]"
+  echo "Usage: jira.sh <ISSUE-KEY> [--deep]"
   echo ""
   echo "  ISSUE-KEY  Jira issue key (e.g. WPN-123)"
-  echo "  --branch   Create a git branch after analysis"
   echo "  --deep     Include source snippets in project context"
   exit 1
 fi
@@ -15,13 +14,11 @@ fi
 ISSUE_KEY="$1"
 shift
 
-CREATE_BRANCH=""
 DEEP_MODE=""
 
 while [[ $# -gt 0 ]]; do
   case "$1" in
-    --branch) CREATE_BRANCH="1"; shift ;;
-    --deep)   DEEP_MODE="1";   shift ;;
+    --deep) DEEP_MODE="1"; shift ;;
     *) shift ;;
   esac
 done
@@ -159,12 +156,6 @@ SUMMARY=$(V23CC_ISSUE_JSON="$ISSUE_JSON" python3 -c "
 import json, os
 d = json.loads(os.environ['V23CC_ISSUE_JSON'])
 print(d.get('fields', {}).get('summary', ''))
-")
-
-ISSUE_TYPE=$(V23CC_ISSUE_JSON="$ISSUE_JSON" python3 -c "
-import json, os
-d = json.loads(os.environ['V23CC_ISSUE_JSON'])
-print((d.get('fields', {}).get('issuetype') or {}).get('name', 'Task'))
 ")
 
 ISSUE_LANG=$(V23CC_ISSUE_JSON="$ISSUE_JSON" python3 -c "
@@ -321,28 +312,3 @@ printf '# %s — %s\n\n> Source: %s\n> Analyzed: %s\n\n%s\n' \
 echo ""
 echo "Saved: v23cc/jira/${ISSUE_KEY}.md"
 
-# --- Optional: create branch ---
-
-if [ -n "$CREATE_BRANCH" ]; then
-  BRANCH_NAME=$(printf '%s' "$RESULT" | grep -oE '(feature|fix|chore|refactor|hotfix)/[A-Za-z]+-[0-9]+-[a-z0-9-]+' | head -1)
-
-  if [ -z "$BRANCH_NAME" ]; then
-    TYPE_LOWER=$(printf '%s' "$ISSUE_TYPE" | tr '[:upper:]' '[:lower:]')
-    case "$TYPE_LOWER" in
-      bug)            PREFIX="fix" ;;
-      story|epic)     PREFIX="feature" ;;
-      sub-task)       PREFIX="chore" ;;
-      *)              PREFIX="chore" ;;
-    esac
-    SLUG=$(printf '%s' "$SUMMARY" | tr '[:upper:]' '[:lower:]' | sed 's/[^a-z0-9]/-/g; s/--*/-/g; s/^-//; s/-$//' | cut -c1-40)
-    BRANCH_NAME="${PREFIX}/${ISSUE_KEY}-${SLUG}"
-  fi
-
-  echo ""
-  if git checkout -b "$BRANCH_NAME" 2>/dev/null; then
-    echo "Branch created: $BRANCH_NAME"
-  else
-    echo "Warning: Could not create branch '$BRANCH_NAME' (may already exist)."
-    echo "To create manually: git checkout -b $BRANCH_NAME"
-  fi
-fi
