@@ -275,6 +275,17 @@ function migrateConfig() {
 }
 
 function install(targetDir, namespace) {
+  // Clean up old namespace if it changed
+  const prevNamespace = readStoredNamespace();
+  if (prevNamespace !== namespace) {
+    const oldDir = path.join(targetDir, prevNamespace);
+    if (fs.existsSync(oldDir)) {
+      fs.rmSync(oldDir, { recursive: true, force: true });
+      console.log(`  ✗ removed old namespace directory: ${prevNamespace}/`);
+    }
+    uninstallMcp(prevNamespace);
+  }
+
   const files = collectMdFiles(COMMANDS_SRC);
 
   for (const rel of files) {
