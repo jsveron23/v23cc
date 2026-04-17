@@ -15,6 +15,7 @@ export function createContext({ targetDir, namespace = null, pkgVersion }) {
     prevNamespace,
     isLastScope,
     pkgVersion,
+    installedCommands: [],
     log: (msg) => console.log(msg),
   };
 }

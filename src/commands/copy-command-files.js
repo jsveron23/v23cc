@@ -2,6 +2,17 @@ import fs from 'node:fs';
 import path from 'node:path';
 import { COMMANDS_SRC } from '../paths.js';
 
+function parseFrontmatter(content) {
+  const match = content.match(/^---\n([\s\S]*?)\n---/);
+  if (!match) return {};
+  const out = {};
+  for (const line of match[1].split('\n')) {
+    const m = line.match(/^([a-zA-Z-]+):\s*(.*)$/);
+    if (m) out[m[1]] = m[2].trim();
+  }
+  return out;
+}
+
 function collectMdFiles(dir, base = '') {
   const entries = fs.readdirSync(dir, { withFileTypes: true });
   const results = [];
@@ -32,6 +43,10 @@ export default {
       }
       fs.writeFileSync(dest, content, 'utf8');
       ctx.log(`  ✓ ${destRel}`);
+      const fm = parseFrontmatter(content);
+      if (fm.name && fm.description) {
+        ctx.installedCommands.push({ name: fm.name, description: fm.description });
+      }
     }
   },
   async uninstall(ctx) {
