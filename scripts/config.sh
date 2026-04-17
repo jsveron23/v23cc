@@ -5,7 +5,7 @@ CONFIG=~/.v23cc/config.json
 
 if [ ! -f "$CONFIG" ]; then
   echo "No config found at $CONFIG"
-  echo "Run: /v23cc:model add <name> <model-id> [port]"
+  echo "Run: /<namespace>:model add <name> <model-id> [port]"
   exit 0
 fi
 

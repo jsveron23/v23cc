@@ -9,6 +9,67 @@ const isGlobal = args.includes('--global') || args.includes('-g');
 const isLocal = args.includes('--local') || args.includes('-l');
 const isUninstall = args.includes('--uninstall');
 
+const namespaceArgIdx = args.findIndex((a) => a === '--namespace' || a === '-n');
+const namespaceArg = namespaceArgIdx !== -1 ? args[namespaceArgIdx + 1] : null;
+
+const CONFIG_PATH = path.join(os.homedir(), '.v23cc', 'config.json');
+const GLOBAL_COMMANDS_DIR = path.join(os.homedir(), '.claude', 'commands');
+
+function readConfig() {
+  if (!fs.existsSync(CONFIG_PATH)) return {};
+  try { return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8')); } catch (e) { return {}; }
+}
+
+function writeConfig(d) {
+  fs.mkdirSync(path.dirname(CONFIG_PATH), { recursive: true });
+  fs.writeFileSync(CONFIG_PATH, JSON.stringify(d, null, 2) + '\n', 'utf8');
+}
+
+function readScopes() {
+  return readConfig().scopes || [];
+}
+
+function writeScopes(scopes) {
+  const d = readConfig();
+  d.scopes = scopes;
+  delete d.namespace;
+  writeConfig(d);
+}
+
+function getScopeKey(targetDir) {
+  if (targetDir === GLOBAL_COMMANDS_DIR) return { type: 'global' };
+  return { type: 'local', path: path.dirname(path.dirname(targetDir)) };
+}
+
+function scopeMatches(a, b) {
+  if (a.type !== b.type) return false;
+  if (a.type === 'local') return a.path === b.path;
+  return true;
+}
+
+function findScope(scopes, key) {
+  return scopes.find((s) => scopeMatches(s, key)) || null;
+}
+
+function upsertScope(scopes, key, namespace) {
+  const existing = findScope(scopes, key);
+  const prevNamespace = existing ? existing.namespace : null;
+  if (existing) {
+    existing.namespace = namespace;
+  } else {
+    scopes.push({ ...key, namespace });
+  }
+  return prevNamespace;
+}
+
+function removeScope(scopes, key) {
+  const idx = scopes.findIndex((s) => scopeMatches(s, key));
+  if (idx === -1) return null;
+  const removed = scopes[idx];
+  scopes.splice(idx, 1);
+  return removed.namespace;
+}
+
 const COMMANDS_SRC = path.join(__dirname, '..', 'commands');
 const SCRIPTS_SRC = path.join(__dirname, '..', 'scripts');
 const MCP_SRC = path.join(__dirname, '..', 'mcp');
@@ -32,15 +93,31 @@ function promptChoice() {
   });
 }
 
+function resolveLocalTarget() {
+  const claudeDir = path.join(process.cwd(), '.claude');
+  if (!isUninstall && !fs.existsSync(claudeDir)) {
+    console.error(`  ✗ No .claude/ directory in ${process.cwd()}.`);
+    console.error('    Run this from a project that uses Claude Code, or use --global.');
+    process.exit(1);
+  }
+  const localTarget = path.join(claudeDir, 'commands');
+  if (!isUninstall && localTarget === GLOBAL_COMMANDS_DIR) {
+    console.error('  ✗ --local from $HOME resolves to the global commands dir.');
+    console.error('    Use --global explicitly, or cd into a project directory.');
+    process.exit(1);
+  }
+  return localTarget;
+}
+
 async function getTargetDir() {
-  if (isGlobal) return path.join(os.homedir(), '.claude', 'commands');
-  if (isLocal) return path.join(process.cwd(), '.claude', 'commands');
+  if (isGlobal) return GLOBAL_COMMANDS_DIR;
+  if (isLocal) return resolveLocalTarget();
 
   const answer = await promptChoice();
   if (answer === 'l' || answer === 'local') {
-    return path.join(process.cwd(), '.claude', 'commands');
+    return resolveLocalTarget();
   }
-  return path.join(os.homedir(), '.claude', 'commands');
+  return GLOBAL_COMMANDS_DIR;
 }
 
 function collectMdFiles(dir, base = '') {
@@ -153,7 +230,7 @@ function uninstallScripts() {
   }
 }
 
-function installMcp(settingsDir) {
+function installMcp(namespace) {
   if (!fs.existsSync(MCP_SRC)) return;
   fs.mkdirSync(V23CC_MCP, { recursive: true });
   const entries = fs.readdirSync(MCP_SRC).filter((f) => f.endsWith('.js'));
@@ -170,15 +247,16 @@ function installMcp(settingsDir) {
   console.log('  ✓ installing MCP server dependencies...');
   require('child_process').execSync('npm install --production --silent', { cwd: V23CC_MCP, stdio: 'inherit' });
   console.log('  ✓ MCP server dependencies installed');
-  registerMcp();
+  registerMcp(namespace);
 }
 
-function registerMcp() {
+function registerMcp(namespace) {
+  const serverName = `${namespace}-atlassian`;
   const serverPath = path.join(os.homedir(), '.v23cc', 'mcp', 'atlassian-server.js');
   const { execSync } = require('child_process');
   try {
-    execSync(`claude mcp add -s user v23cc-atlassian node ${serverPath}`, { stdio: 'pipe' });
-    console.log('  ✓ registered v23cc-atlassian MCP server (user scope)');
+    execSync(`claude mcp add -s user ${serverName} node ${serverPath}`, { stdio: 'pipe' });
+    console.log(`  ✓ registered ${serverName} MCP server (user scope)`);
   } catch (e) {
     // Fallback: write directly to settings.json
     const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
@@ -187,29 +265,30 @@ function registerMcp() {
       try { settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8')); } catch {}
     }
     if (!settings.mcpServers) settings.mcpServers = {};
-    settings.mcpServers['v23cc-atlassian'] = { command: 'node', args: [serverPath] };
+    settings.mcpServers[serverName] = { command: 'node', args: [serverPath] };
     fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
     fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
-    console.log('  ✓ registered v23cc-atlassian MCP server in ~/.claude/settings.json');
+    console.log(`  ✓ registered ${serverName} MCP server in ~/.claude/settings.json`);
   }
 }
 
-function uninstallMcp() {
-  // Remove files
-  if (fs.existsSync(V23CC_MCP)) {
-    const entries = fs.readdirSync(V23CC_MCP).filter((f) => f.endsWith('.js'));
-    for (const file of entries) {
-      const dest = path.join(V23CC_MCP, file);
-      fs.unlinkSync(dest);
-      console.log(`  ✗ removed ~/.v23cc/mcp/${file}`);
-    }
-  }
-  // Remove via claude CLI
+function unregisterMcp(namespace) {
+  const serverName = `${namespace}-atlassian`;
   const { execSync } = require('child_process');
   try {
-    execSync('claude mcp remove v23cc-atlassian -s user', { stdio: 'pipe' });
-    console.log('  ✗ removed v23cc-atlassian MCP server');
+    execSync(`claude mcp remove ${serverName} -s user`, { stdio: 'pipe' });
+    console.log(`  ✗ removed ${serverName} MCP server`);
   } catch {}
+}
+
+function removeMcpFiles() {
+  if (!fs.existsSync(V23CC_MCP)) return;
+  const entries = fs.readdirSync(V23CC_MCP).filter((f) => f.endsWith('.js'));
+  for (const file of entries) {
+    const dest = path.join(V23CC_MCP, file);
+    fs.unlinkSync(dest);
+    console.log(`  ✗ removed ~/.v23cc/mcp/${file}`);
+  }
 }
 
 function createOutputDir() {
@@ -229,39 +308,55 @@ function createOutputDir() {
 }
 
 function migrateConfig() {
-  const configPath = path.join(os.homedir(), '.v23cc', 'config.json');
-  if (!fs.existsSync(configPath)) return;
-  let d;
-  try {
-    d = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  } catch (e) {
-    return;
-  }
+  if (!fs.existsSync(CONFIG_PATH)) return;
+  const d = readConfig();
   if (!('active' in d)) return;
   const activeName = d.active;
   delete d.active;
   for (const [name, cfg] of Object.entries(d.models || {})) {
     cfg.active = name === activeName;
   }
-  fs.writeFileSync(configPath, JSON.stringify(d, null, 2) + '\n', 'utf8');
+  writeConfig(d);
   console.log('  ✓ migrated config.json to new format');
 }
 
-function install(targetDir) {
+function install(targetDir, namespace) {
+  const scopeKey = getScopeKey(targetDir);
+  const scopes = readScopes();
+  const prevNamespace = findScope(scopes, scopeKey)?.namespace || null;
+
+  if (prevNamespace && prevNamespace !== namespace) {
+    const oldDir = path.join(targetDir, prevNamespace);
+    if (fs.existsSync(oldDir)) {
+      fs.rmSync(oldDir, { recursive: true, force: true });
+      console.log(`  ✗ removed old namespace directory: ${prevNamespace}/`);
+    }
+    unregisterMcp(prevNamespace);
+  }
+
   const files = collectMdFiles(COMMANDS_SRC);
 
   for (const rel of files) {
     const src = path.join(COMMANDS_SRC, rel);
-    const dest = path.join(targetDir, rel);
+    // Rewrite the source namespace directory to the chosen namespace
+    const destRel = rel.replace(/^v23cc\//, `${namespace}/`);
+    const dest = path.join(targetDir, destRel);
     fs.mkdirSync(path.dirname(dest), { recursive: true });
-    fs.copyFileSync(src, dest);
-    console.log(`  ✓ ${rel}`);
+    let content = fs.readFileSync(src, 'utf8');
+    if (namespace !== 'v23cc') {
+      content = content.replace(/^name: v23cc:/m, `name: ${namespace}:`);
+      content = content.replace(/\/v23cc:/g, `/${namespace}:`);
+    }
+    fs.writeFileSync(dest, content, 'utf8');
+    console.log(`  ✓ ${destRel}`);
   }
 
   installScripts();
-  installMcp();
+  installMcp(namespace);
   createOutputDir();
   migrateConfig();
+  upsertScope(scopes, scopeKey, namespace);
+  writeScopes(scopes);
 
   const pkg = require(path.join(__dirname, '..', 'package.json'));
   writeVersionMarker(pkg.version);
@@ -269,17 +364,21 @@ function install(targetDir) {
 
   console.log(`\n✅ v23cc installed to ${targetDir}`);
   console.log('\nAvailable commands in Claude Code:');
-  console.log('  /v23cc:youtube    — Summarize a YouTube video');
-  console.log('  /v23cc:model      — Manage local LLM presets');
-  console.log('  /v23cc:commit     — Generate a git commit message');
-  console.log('  /v23cc:sync-docs  — Update README.md and CLAUDE.md');
-  console.log('  /v23cc:pr         — Generate a PR title and description');
-  console.log('  /v23cc:config     — Show config list');
-  console.log('  /v23cc:atlassian  — Set up Jira & Confluence credentials');
-  console.log('  /v23cc:jira       — Analyze a Jira issue for implementation\n');
+  console.log(`  /${namespace}:youtube    — Summarize a YouTube video`);
+  console.log(`  /${namespace}:model      — Manage local LLM presets`);
+  console.log(`  /${namespace}:commit     — Generate a git commit message`);
+  console.log(`  /${namespace}:sync-docs  — Update README.md and CLAUDE.md`);
+  console.log(`  /${namespace}:pr         — Generate a PR title and description`);
+  console.log(`  /${namespace}:config     — Show config list`);
+  console.log(`  /${namespace}:atlassian  — Set up Jira & Confluence credentials`);
+  console.log(`  /${namespace}:jira       — Analyze a Jira issue for implementation\n`);
 }
 
 function uninstall(targetDir) {
+  const scopeKey = getScopeKey(targetDir);
+  const scopes = readScopes();
+  const namespace = findScope(scopes, scopeKey)?.namespace || 'v23cc';
+
   if (!fs.existsSync(targetDir)) {
     console.log('Nothing to uninstall.');
     return;
@@ -288,26 +387,34 @@ function uninstall(targetDir) {
   const files = collectMdFiles(COMMANDS_SRC);
 
   for (const rel of files) {
-    const dest = path.join(targetDir, rel);
+    const destRel = rel.replace(/^v23cc\//, `${namespace}/`);
+    const dest = path.join(targetDir, destRel);
     if (fs.existsSync(dest)) {
       fs.unlinkSync(dest);
-      console.log(`  ✗ removed ${rel}`);
+      console.log(`  ✗ removed ${destRel}`);
     }
   }
 
-  uninstallScripts();
-  uninstallMcp();
-  unregisterHook();
+  unregisterMcp(namespace);
+  removeScope(scopes, scopeKey);
+  writeScopes(scopes);
 
-  const hookDest = path.join(os.homedir(), '.v23cc', 'check-update.js');
-  if (fs.existsSync(hookDest)) {
-    fs.unlinkSync(hookDest);
-    console.log('  ✗ removed ~/.v23cc/check-update.js');
-  }
-  const versionDest = path.join(os.homedir(), '.v23cc', 'version');
-  if (fs.existsSync(versionDest)) {
-    fs.unlinkSync(versionDest);
-    console.log('  ✗ removed ~/.v23cc/version');
+  if (scopes.length === 0) {
+    uninstallScripts();
+    removeMcpFiles();
+    unregisterHook();
+    const hookDest = path.join(os.homedir(), '.v23cc', 'check-update.js');
+    if (fs.existsSync(hookDest)) {
+      fs.unlinkSync(hookDest);
+      console.log('  ✗ removed ~/.v23cc/check-update.js');
+    }
+    const versionDest = path.join(os.homedir(), '.v23cc', 'version');
+    if (fs.existsSync(versionDest)) {
+      fs.unlinkSync(versionDest);
+      console.log('  ✗ removed ~/.v23cc/version');
+    }
+  } else {
+    console.log(`  ℹ ~/.v23cc/ kept (${scopes.length} other scope(s) still active)`);
   }
 
   console.log(`\n✅ v23cc uninstalled from ${targetDir}\n`);
@@ -321,7 +428,8 @@ getTargetDir().then((targetDir) => {
   if (isUninstall) {
     uninstall(targetDir);
   } else {
-    console.log(`Installing to: ${targetDir}\n`);
-    install(targetDir);
+    const namespace = namespaceArg || 'v23cc';
+    console.log(`Installing to: ${targetDir} (namespace: ${namespace})\n`);
+    install(targetDir, namespace);
   }
 });

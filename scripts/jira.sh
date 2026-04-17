@@ -38,7 +38,7 @@ fi
 
 if [ ! -f "$CONFIG" ]; then
   echo "Error: Atlassian not configured."
-  echo "Run: /v23cc:atlassian init"
+  echo "Run: /<namespace>:atlassian init"
   exit 1
 fi
 
@@ -47,13 +47,13 @@ import json, os, sys
 d = json.load(open(os.environ['V23CC_CONFIG']))
 a = d.get('atlassian')
 if not a:
-    print('echo \"Error: Atlassian not configured. Run: /v23cc:atlassian init\"; exit 1')
+    print('echo \"Error: Atlassian not configured. Run: /<namespace>:atlassian init\"; exit 1')
     sys.exit(0)
 domain = a.get('domain', '').strip()
 email  = a.get('email', '').strip()
 token  = a.get('token', '').strip()
 if not domain or not email or not token:
-    print('echo \"Error: Atlassian credentials incomplete. Run: /v23cc:atlassian init\"; exit 1')
+    print('echo \"Error: Atlassian credentials incomplete. Run: /<namespace>:atlassian init\"; exit 1')
     sys.exit(0)
 print(f'DOMAIN={domain}')
 print(f'EMAIL={email}')
@@ -75,7 +75,7 @@ ISSUE_JSON=$(printf '%s' "$RESPONSE" | sed '$d')
 case "$HTTP_CODE" in
   200) ;;
   404) echo "Error: Issue not found: ${ISSUE_KEY}"; exit 1 ;;
-  401|403) echo "Error: Authentication failed. Check credentials with /v23cc:atlassian status"; exit 1 ;;
+  401|403) echo "Error: Authentication failed. Check credentials with /<namespace>:atlassian status"; exit 1 ;;
   *) echo "Error: Jira API returned HTTP ${HTTP_CODE}"; exit 1 ;;
 esac
 

@@ -12,25 +12,18 @@ v23cc is a lightweight Claude Code workflow system that uses local LLM inference
 
 - **Command Definition**: Slash commands are defined in Markdown files within `/commands/v23cc/`.
 - **Execution Flow**: Commands pipe prompts to a local LLM endpoint (e.g., `mlx-lm`) for execution.
-- **Configuration**: `~/.v23cc/config.json` manages the active local model preset and port settings.
-- **Installation**: `bin/install.js` manages installation paths (global/local).
+- **Configuration**: `~/.v23cc/config.json` stores the active local model preset, port settings, and a `scopes` array tracking all active installs (`{type:'global'}` or `{type:'local', path:'...'}`).
+- **Installation**: `bin/install.js` manages installation paths (global/local) and supports `--namespace <name>` to rename the command prefix (e.g., `/wp:commit`). The internal tool home (`~/.v23cc/`) stays fixed regardless of namespace. Multiple scopes can coexist; shared files in `~/.v23cc/` are only removed when the last scope is uninstalled. `--local` errors out if no `.claude/` directory is present, or if run from `$HOME`.
 
 ## Commands
 
-- **`/v23cc:config`**: Show config list.
-- **`/v23cc:model`**: Manage local LLM model presets (list, use, add, remove).
-- **`/v23cc:youtube`**: Summarize a YouTube video using local LLM.
-- **`/v23cc:commit`**: Generate a commit message using the local LLM.
-- **`/v23cc:sync-docs`**: Update `README.md` and `CLAUDE.md` using the local LLM.
-- **`/v23cc:pr`**: Generate a Pull Request title and description using the local LLM.
-- **`/v23cc:branch`**: Create, switch, rename, track, or list git branches (create, switch, rename, track, list, current subcommands).
-- **`/v23cc:atlassian`**: Set up and manage Jira & Confluence credentials for MCP integration.
-- **`/v23cc:jira`**: Analyze a Jira issue and suggest implementation approach using local LLM (`--deep` for source snippets, `--note` for extra context).
+See [README.md](README.md#commands) for the full command reference.
 
 ## Rules
 
 - Do not claim files are outdated or out of sync without verifying first.
 - When testing or applying scripts, install locally only (`node bin/install.js --local`). Never install globally unless explicitly asked.
+- Never commit unless explicitly asked. Do not run commit scripts or `git commit` on your own.
 
 ## Codebase Notes
 

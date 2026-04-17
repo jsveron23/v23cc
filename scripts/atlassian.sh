@@ -7,7 +7,7 @@ show_status() {
   if [ ! -f "$CONFIG" ]; then
     echo "Atlassian: not configured"
     echo ""
-    echo "Run: /v23cc:atlassian init"
+    echo "Run: /<namespace>:atlassian init"
     return
   fi
   V23CC_CONFIG="$CONFIG" python3 -c "
@@ -18,7 +18,7 @@ atlassian = d.get('atlassian')
 if not atlassian:
     print('Atlassian: not configured')
     print()
-    print('Run: /v23cc:atlassian init')
+    print('Run: /<namespace>:atlassian init')
 else:
     token = atlassian.get('token', '')
     masked = token[:4] + '****' + token[-4:] if len(token) > 8 else '****'
@@ -42,7 +42,7 @@ case "$CMD" in
     EMAIL="${3:-}"
     TOKEN="${4:-}"
     if [ -z "$DOMAIN" ] || [ -z "$EMAIL" ] || [ -z "$TOKEN" ]; then
-      echo "Usage: /v23cc:atlassian init <domain> <email> <token>"
+      echo "Usage: /<namespace>:atlassian init <domain> <email> <token>"
       echo ""
       echo "  domain  — Atlassian subdomain (e.g. mycompany for mycompany.atlassian.net)"
       echo "  email   — your Atlassian account email"
@@ -83,7 +83,7 @@ print('Credentials saved to ~/.v23cc/config.json')
 
   *)
     echo "Unknown command: $CMD"
-    echo "Usage: /v23cc:atlassian [status | init <domain> <email> <token>]"
+    echo "Usage: /<namespace>:atlassian [status | init <domain> <email> <token>]"
     exit 1
     ;;
 esac

@@ -5,7 +5,7 @@ CONFIG=~/.v23cc/config.json
 
 show_state() {
   if [ ! -f "$CONFIG" ]; then
-    echo "No config found. Run: /v23cc:model add <name> <model-id> [endpoint]"
+    echo "No config found. Run: /<namespace>:model add <name> <model-id> [endpoint]"
     return
   fi
   V23CC_CONFIG="$CONFIG" python3 -c "
@@ -39,7 +39,7 @@ case "$CMD" in
 
   use)
     NAME="${2:-}"
-    if [ -z "$NAME" ]; then echo "Usage: /v23cc:model use <name>"; exit 1; fi
+    if [ -z "$NAME" ]; then echo "Usage: /<namespace>:model use <name>"; exit 1; fi
     if [ ! -f "$CONFIG" ]; then echo "No config found."; exit 1; fi
     V23CC_CONFIG="$CONFIG" V23CC_NAME="$NAME" python3 -c "
 import json, sys, os
@@ -72,7 +72,7 @@ print(f'  model={cfg[\"model\"]}  {protocol}://{host}:{port}')
     MODEL_ID="${3:-}"
     ENDPOINT="${4:-}"
     if [ -z "$NAME" ] || [ -z "$MODEL_ID" ]; then
-      echo "Usage: /v23cc:model add <name> <model-id> [endpoint]"
+      echo "Usage: /<namespace>:model add <name> <model-id> [endpoint]"
       exit 1
     fi
     mkdir -p ~/.v23cc
@@ -121,7 +121,7 @@ if models[name]['active']:
 
   remove)
     NAME="${2:-}"
-    if [ -z "$NAME" ]; then echo "Usage: /v23cc:model remove <name>"; exit 1; fi
+    if [ -z "$NAME" ]; then echo "Usage: /<namespace>:model remove <name>"; exit 1; fi
     if [ ! -f "$CONFIG" ]; then echo "No config found."; exit 1; fi
     V23CC_CONFIG="$CONFIG" V23CC_NAME="$NAME" python3 -c "
 import json, sys, os
@@ -150,7 +150,7 @@ print(f'Removed preset: {name}')
 
   *)
     echo "Unknown command: $CMD"
-    echo "Usage: /v23cc:model [list | use <name> | add <name> <model-id> [endpoint] | remove <name>]"
+    echo "Usage: /<namespace>:model [list | use <name> | add <name> <model-id> [endpoint] | remove <name>]"
     exit 1
     ;;
 esac
