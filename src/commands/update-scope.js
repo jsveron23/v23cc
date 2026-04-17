@@ -9,7 +9,7 @@ export default {
   async uninstall(ctx) {
     removeScope(ctx.scopes, ctx.scopeKey);
     writeScopes(ctx.scopes);
-    if (!ctx.isLastScope) {
+    if (!ctx.isOnlyScope) {
       ctx.log(`  ℹ ~/.v23cc/ kept (${ctx.scopes.length} other scope(s) still active)`);
     }
   },

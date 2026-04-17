@@ -7,4 +7,4 @@
 //   };
 //
 // ctx fields: targetDir, namespace, scopeKey, scopes, prevNamespace,
-//             isLastScope, pkgVersion, log(msg)
+//             isOnlyScope, pkgVersion, log(msg)
