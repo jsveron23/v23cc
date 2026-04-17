@@ -12,26 +12,62 @@ const isUninstall = args.includes('--uninstall');
 const namespaceArgIdx = args.findIndex((a) => a === '--namespace' || a === '-n');
 const namespaceArg = namespaceArgIdx !== -1 ? args[namespaceArgIdx + 1] : null;
 
-function readStoredNamespace() {
-  const configPath = path.join(os.homedir(), '.v23cc', 'config.json');
-  if (!fs.existsSync(configPath)) return 'v23cc';
-  try {
-    const d = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-    return d.namespace || 'v23cc';
-  } catch (e) {
-    return 'v23cc';
-  }
+const CONFIG_PATH = path.join(os.homedir(), '.v23cc', 'config.json');
+const GLOBAL_COMMANDS_DIR = path.join(os.homedir(), '.claude', 'commands');
+
+function readConfig() {
+  if (!fs.existsSync(CONFIG_PATH)) return {};
+  try { return JSON.parse(fs.readFileSync(CONFIG_PATH, 'utf8')); } catch (e) { return {}; }
 }
 
-function saveNamespace(namespace) {
-  const configPath = path.join(os.homedir(), '.v23cc', 'config.json');
-  let d = {};
-  if (fs.existsSync(configPath)) {
-    try { d = JSON.parse(fs.readFileSync(configPath, 'utf8')); } catch (e) {}
+function writeConfig(d) {
+  fs.mkdirSync(path.dirname(CONFIG_PATH), { recursive: true });
+  fs.writeFileSync(CONFIG_PATH, JSON.stringify(d, null, 2) + '\n', 'utf8');
+}
+
+function readScopes() {
+  return readConfig().scopes || [];
+}
+
+function writeScopes(scopes) {
+  const d = readConfig();
+  d.scopes = scopes;
+  delete d.namespace;
+  writeConfig(d);
+}
+
+function getScopeKey(targetDir) {
+  if (targetDir === GLOBAL_COMMANDS_DIR) return { type: 'global' };
+  return { type: 'local', path: path.dirname(path.dirname(targetDir)) };
+}
+
+function scopeMatches(a, b) {
+  if (a.type !== b.type) return false;
+  if (a.type === 'local') return a.path === b.path;
+  return true;
+}
+
+function findScope(scopes, key) {
+  return scopes.find((s) => scopeMatches(s, key)) || null;
+}
+
+function upsertScope(scopes, key, namespace) {
+  const existing = findScope(scopes, key);
+  const prevNamespace = existing ? existing.namespace : null;
+  if (existing) {
+    existing.namespace = namespace;
+  } else {
+    scopes.push({ ...key, namespace });
   }
-  d.namespace = namespace;
-  fs.mkdirSync(path.dirname(configPath), { recursive: true });
-  fs.writeFileSync(configPath, JSON.stringify(d, null, 2) + '\n', 'utf8');
+  return prevNamespace;
+}
+
+function removeScope(scopes, key) {
+  const idx = scopes.findIndex((s) => scopeMatches(s, key));
+  if (idx === -1) return null;
+  const removed = scopes[idx];
+  scopes.splice(idx, 1);
+  return removed.namespace;
 }
 
 const COMMANDS_SRC = path.join(__dirname, '..', 'commands');
@@ -57,15 +93,31 @@ function promptChoice() {
   });
 }
 
+function resolveLocalTarget() {
+  const claudeDir = path.join(process.cwd(), '.claude');
+  if (!isUninstall && !fs.existsSync(claudeDir)) {
+    console.error(`  ✗ No .claude/ directory in ${process.cwd()}.`);
+    console.error('    Run this from a project that uses Claude Code, or use --global.');
+    process.exit(1);
+  }
+  const localTarget = path.join(claudeDir, 'commands');
+  if (!isUninstall && localTarget === GLOBAL_COMMANDS_DIR) {
+    console.error('  ✗ --local from $HOME resolves to the global commands dir.');
+    console.error('    Use --global explicitly, or cd into a project directory.');
+    process.exit(1);
+  }
+  return localTarget;
+}
+
 async function getTargetDir() {
-  if (isGlobal) return path.join(os.homedir(), '.claude', 'commands');
-  if (isLocal) return path.join(process.cwd(), '.claude', 'commands');
+  if (isGlobal) return GLOBAL_COMMANDS_DIR;
+  if (isLocal) return resolveLocalTarget();
 
   const answer = await promptChoice();
   if (answer === 'l' || answer === 'local') {
-    return path.join(process.cwd(), '.claude', 'commands');
+    return resolveLocalTarget();
   }
-  return path.join(os.homedir(), '.claude', 'commands');
+  return GLOBAL_COMMANDS_DIR;
 }
 
 function collectMdFiles(dir, base = '') {
@@ -220,23 +272,23 @@ function registerMcp(namespace) {
   }
 }
 
-function uninstallMcp(namespace) {
-  // Remove files
-  if (fs.existsSync(V23CC_MCP)) {
-    const entries = fs.readdirSync(V23CC_MCP).filter((f) => f.endsWith('.js'));
-    for (const file of entries) {
-      const dest = path.join(V23CC_MCP, file);
-      fs.unlinkSync(dest);
-      console.log(`  ✗ removed ~/.v23cc/mcp/${file}`);
-    }
-  }
-  // Remove via claude CLI
+function unregisterMcp(namespace) {
   const serverName = `${namespace}-atlassian`;
   const { execSync } = require('child_process');
   try {
     execSync(`claude mcp remove ${serverName} -s user`, { stdio: 'pipe' });
     console.log(`  ✗ removed ${serverName} MCP server`);
   } catch {}
+}
+
+function removeMcpFiles() {
+  if (!fs.existsSync(V23CC_MCP)) return;
+  const entries = fs.readdirSync(V23CC_MCP).filter((f) => f.endsWith('.js'));
+  for (const file of entries) {
+    const dest = path.join(V23CC_MCP, file);
+    fs.unlinkSync(dest);
+    console.log(`  ✗ removed ~/.v23cc/mcp/${file}`);
+  }
 }
 
 function createOutputDir() {
@@ -256,34 +308,30 @@ function createOutputDir() {
 }
 
 function migrateConfig() {
-  const configPath = path.join(os.homedir(), '.v23cc', 'config.json');
-  if (!fs.existsSync(configPath)) return;
-  let d;
-  try {
-    d = JSON.parse(fs.readFileSync(configPath, 'utf8'));
-  } catch (e) {
-    return;
-  }
+  if (!fs.existsSync(CONFIG_PATH)) return;
+  const d = readConfig();
   if (!('active' in d)) return;
   const activeName = d.active;
   delete d.active;
   for (const [name, cfg] of Object.entries(d.models || {})) {
     cfg.active = name === activeName;
   }
-  fs.writeFileSync(configPath, JSON.stringify(d, null, 2) + '\n', 'utf8');
+  writeConfig(d);
   console.log('  ✓ migrated config.json to new format');
 }
 
 function install(targetDir, namespace) {
-  // Clean up old namespace if it changed
-  const prevNamespace = readStoredNamespace();
-  if (prevNamespace !== namespace) {
+  const scopeKey = getScopeKey(targetDir);
+  const scopes = readScopes();
+  const prevNamespace = findScope(scopes, scopeKey)?.namespace || null;
+
+  if (prevNamespace && prevNamespace !== namespace) {
     const oldDir = path.join(targetDir, prevNamespace);
     if (fs.existsSync(oldDir)) {
       fs.rmSync(oldDir, { recursive: true, force: true });
       console.log(`  ✗ removed old namespace directory: ${prevNamespace}/`);
     }
-    uninstallMcp(prevNamespace);
+    unregisterMcp(prevNamespace);
   }
 
   const files = collectMdFiles(COMMANDS_SRC);
@@ -307,7 +355,8 @@ function install(targetDir, namespace) {
   installMcp(namespace);
   createOutputDir();
   migrateConfig();
-  saveNamespace(namespace);
+  upsertScope(scopes, scopeKey, namespace);
+  writeScopes(scopes);
 
   const pkg = require(path.join(__dirname, '..', 'package.json'));
   writeVersionMarker(pkg.version);
@@ -326,7 +375,9 @@ function install(targetDir, namespace) {
 }
 
 function uninstall(targetDir) {
-  const namespace = readStoredNamespace();
+  const scopeKey = getScopeKey(targetDir);
+  const scopes = readScopes();
+  const namespace = findScope(scopes, scopeKey)?.namespace || 'v23cc';
 
   if (!fs.existsSync(targetDir)) {
     console.log('Nothing to uninstall.');
@@ -344,19 +395,26 @@ function uninstall(targetDir) {
     }
   }
 
-  uninstallScripts();
-  uninstallMcp(namespace);
-  unregisterHook();
+  unregisterMcp(namespace);
+  removeScope(scopes, scopeKey);
+  writeScopes(scopes);
 
-  const hookDest = path.join(os.homedir(), '.v23cc', 'check-update.js');
-  if (fs.existsSync(hookDest)) {
-    fs.unlinkSync(hookDest);
-    console.log('  ✗ removed ~/.v23cc/check-update.js');
-  }
-  const versionDest = path.join(os.homedir(), '.v23cc', 'version');
-  if (fs.existsSync(versionDest)) {
-    fs.unlinkSync(versionDest);
-    console.log('  ✗ removed ~/.v23cc/version');
+  if (scopes.length === 0) {
+    uninstallScripts();
+    removeMcpFiles();
+    unregisterHook();
+    const hookDest = path.join(os.homedir(), '.v23cc', 'check-update.js');
+    if (fs.existsSync(hookDest)) {
+      fs.unlinkSync(hookDest);
+      console.log('  ✗ removed ~/.v23cc/check-update.js');
+    }
+    const versionDest = path.join(os.homedir(), '.v23cc', 'version');
+    if (fs.existsSync(versionDest)) {
+      fs.unlinkSync(versionDest);
+      console.log('  ✗ removed ~/.v23cc/version');
+    }
+  } else {
+    console.log(`  ℹ ~/.v23cc/ kept (${scopes.length} other scope(s) still active)`);
   }
 
   console.log(`\n✅ v23cc uninstalled from ${targetDir}\n`);
