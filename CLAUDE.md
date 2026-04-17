@@ -12,8 +12,8 @@ v23cc is a lightweight Claude Code workflow system that uses local LLM inference
 
 - **Command Definition**: Slash commands are defined in Markdown files within `/commands/v23cc/`.
 - **Execution Flow**: Commands pipe prompts to a local LLM endpoint (e.g., `mlx-lm`) for execution.
-- **Configuration**: `~/.v23cc/config.json` manages the active local model preset, port settings, and installed namespace.
-- **Installation**: `bin/install.js` manages installation paths (global/local) and supports `--namespace <name>` to rename the command prefix (e.g., `/wp:commit`). The internal tool home (`~/.v23cc/`) stays fixed regardless of namespace.
+- **Configuration**: `~/.v23cc/config.json` stores the active local model preset, port settings, and a `scopes` array tracking all active installs (`{type:'global'}` or `{type:'local', path:'...'}`).
+- **Installation**: `bin/install.js` manages installation paths (global/local) and supports `--namespace <name>` to rename the command prefix (e.g., `/wp:commit`). The internal tool home (`~/.v23cc/`) stays fixed regardless of namespace. Multiple scopes can coexist; shared files in `~/.v23cc/` are only removed when the last scope is uninstalled. `--local` errors out if no `.claude/` directory is present, or if run from `$HOME`.
 
 ## Commands
 

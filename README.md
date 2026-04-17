@@ -41,6 +41,11 @@ npx v23cc@latest --local --namespace wp
 
 The `--namespace` flag lets you rename the command prefix to anything you like. The internal tool home (`~/.v23cc/`) stays the same regardless of namespace. Re-installing with a different namespace automatically removes the old one.
 
+**Notes:**
+- `--local` requires a `.claude/` directory in the current directory. If one is not found, the install exits with an error — you are likely in the wrong directory, or should use `--global`.
+- Running `--local` from `$HOME` is also an error, since that path resolves to the same location as `--global`.
+- Multiple installs (e.g. one global, one or more local) are tracked in `~/.v23cc/config.json`. Shared scripts and MCP files in `~/.v23cc/` are only removed when the last install scope is uninstalled.
+
 ## Commands
 
 | Command | Description |
