@@ -12,7 +12,7 @@ export default {
       ctx.log('  ✓ created v23cc/');
     }
     const entry = '/v23cc/';
-    if (!content.split('\n').some((line) => line.trim() === entry)) {
+    if (!content.split(/\r?\n/).some((line) => line.trim() === entry)) {
       content =
         content.endsWith('\n') || content === ''
           ? content + entry + '\n'

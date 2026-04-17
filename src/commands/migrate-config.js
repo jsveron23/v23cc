@@ -11,7 +11,7 @@ export default {
     const activeName = d.active;
     delete d.active;
     for (const [name, cfg] of Object.entries(d.models || {})) {
-      cfg.active = name === activeName;
+      if (cfg && typeof cfg === 'object') cfg.active = name === activeName;
     }
     writeConfig(d);
     ctx.log('  ✓ migrated config.json to new format');

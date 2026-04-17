@@ -32,6 +32,7 @@ export function resolveLocalTarget(isUninstall = false) {
 export async function getTargetDir(isGlobal, isLocal, isUninstall) {
   if (isGlobal) return GLOBAL_COMMANDS_DIR;
   if (isLocal) return resolveLocalTarget(isUninstall);
+  if (!process.stdin.isTTY) return GLOBAL_COMMANDS_DIR;
   const answer = await promptChoice();
   if (answer === 'l' || answer === 'local') return resolveLocalTarget(isUninstall);
   return GLOBAL_COMMANDS_DIR;

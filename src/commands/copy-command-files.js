@@ -3,10 +3,10 @@ import path from 'node:path';
 import { COMMANDS_SRC } from '../paths.js';
 
 function parseFrontmatter(content) {
-  const match = content.match(/^---\n([\s\S]*?)\n---/);
+  const match = content.match(/^---\r?\n([\s\S]*?)\r?\n---/);
   if (!match) return {};
   const out = {};
-  for (const line of match[1].split('\n')) {
+  for (const line of match[1].split(/\r?\n/)) {
     const m = line.match(/^([a-zA-Z-]+):\s*(.*)$/);
     if (m) out[m[1]] = m[2].trim();
   }
@@ -39,12 +39,12 @@ export default {
       let content = fs.readFileSync(src, 'utf8');
       if (ctx.namespace !== 'v23cc') {
         content = content.replace(/^name: v23cc:/m, `name: ${ctx.namespace}:`);
-        content = content.replace(/\/v23cc:/g, `/${ctx.namespace}:`);
+        content = content.replace(/(?<!:)\/v23cc:/g, `/${ctx.namespace}:`);
       }
       fs.writeFileSync(dest, content, 'utf8');
       ctx.log(`  ✓ ${destRel}`);
       const fm = parseFrontmatter(content);
-      if (fm.name && fm.description) {
+      if (fm.name && fm.description && !ctx.installedCommands.some((c) => c.name === fm.name)) {
         ctx.installedCommands.push({ name: fm.name, description: fm.description });
       }
     }

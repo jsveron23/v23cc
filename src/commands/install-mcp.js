@@ -3,6 +3,9 @@ import path from 'node:path';
 import os from 'node:os';
 import { execSync } from 'node:child_process';
 import { MCP_SRC, V23CC_MCP } from '../paths.js';
+import { writeJsonAtomic } from '../config.js';
+
+const SETTINGS_PATH = path.join(os.homedir(), '.claude', 'settings.json');
 
 export function unregisterMcp(namespace, ctx) {
   const serverName = `${namespace}-atlassian`;
@@ -14,22 +17,20 @@ export function unregisterMcp(namespace, ctx) {
 
 function registerMcp(namespace, ctx) {
   const serverName = `${namespace}-atlassian`;
-  const serverPath = path.join(os.homedir(), '.v23cc', 'mcp', 'atlassian-server.js');
+  const serverPath = path.join(V23CC_MCP, 'atlassian-server.js');
   try {
     execSync(`claude mcp add -s user ${serverName} node ${serverPath}`, { stdio: 'pipe' });
     ctx.log(`  ✓ registered ${serverName} MCP server (user scope)`);
   } catch {
-    const settingsPath = path.join(os.homedir(), '.claude', 'settings.json');
     let settings = {};
-    if (fs.existsSync(settingsPath)) {
+    if (fs.existsSync(SETTINGS_PATH)) {
       try {
-        settings = JSON.parse(fs.readFileSync(settingsPath, 'utf8'));
+        settings = JSON.parse(fs.readFileSync(SETTINGS_PATH, 'utf8'));
       } catch {}
     }
     if (!settings.mcpServers) settings.mcpServers = {};
     settings.mcpServers[serverName] = { command: 'node', args: [serverPath] };
-    fs.mkdirSync(path.dirname(settingsPath), { recursive: true });
-    fs.writeFileSync(settingsPath, JSON.stringify(settings, null, 2) + '\n', 'utf8');
+    writeJsonAtomic(SETTINGS_PATH, settings);
     ctx.log(`  ✓ registered ${serverName} MCP server in ~/.claude/settings.json`);
   }
 }
@@ -63,12 +64,18 @@ export default {
       'utf8'
     );
     ctx.log('  ✓ installing MCP server dependencies...');
-    execSync('npm install --production --silent', { cwd: V23CC_MCP, stdio: 'inherit' });
-    ctx.log('  ✓ MCP server dependencies installed');
+    try {
+      execSync('npm install --production --silent', { cwd: V23CC_MCP, stdio: 'inherit' });
+      ctx.log('  ✓ MCP server dependencies installed');
+    } catch {
+      ctx.log(
+        '  ⚠ npm install failed — MCP server may not work. Run "npm install" in ~/.v23cc/mcp/ manually.'
+      );
+    }
     registerMcp(ctx.namespace, ctx);
   },
   async uninstall(ctx) {
     unregisterMcp(ctx.namespace, ctx);
-    if (ctx.isLastScope) removeMcpFiles(ctx);
+    if (ctx.isOnlyScope) removeMcpFiles(ctx);
   },
 };

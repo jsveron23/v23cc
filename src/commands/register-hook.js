@@ -1,6 +1,7 @@
 import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
+import { writeJsonAtomic } from '../config.js';
 
 const SETTINGS_PATH = path.join(os.homedir(), '.claude', 'settings.json');
 
@@ -11,11 +12,6 @@ function readSettings() {
   } catch {
     return null;
   }
-}
-
-function writeSettings(settings) {
-  fs.mkdirSync(path.dirname(SETTINGS_PATH), { recursive: true });
-  fs.writeFileSync(SETTINGS_PATH, JSON.stringify(settings, null, 2) + '\n', 'utf8');
 }
 
 export default {
@@ -34,12 +30,12 @@ export default {
     );
     if (!alreadyRegistered) {
       settings.hooks.SessionStart.push({ hooks: [{ type: 'command', command: hookCommand }] });
-      writeSettings(settings);
+      writeJsonAtomic(SETTINGS_PATH, settings);
       ctx.log(`  ✓ registered SessionStart hook in ~/.claude/settings.json`);
     }
   },
   async uninstall(ctx) {
-    if (!ctx.isLastScope) return;
+    if (!ctx.isOnlyScope) return;
     if (!fs.existsSync(SETTINGS_PATH)) return;
     let settings = {};
     try {
@@ -53,7 +49,7 @@ export default {
       (entry) => !entry.hooks?.some((h) => h.command?.includes('.v23cc/check-update.js'))
     );
     if (settings.hooks.SessionStart.length !== before) {
-      writeSettings(settings);
+      writeJsonAtomic(SETTINGS_PATH, settings);
       ctx.log(`  ✗ removed SessionStart hook from ~/.claude/settings.json`);
     }
   },
