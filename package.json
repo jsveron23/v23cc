@@ -10,11 +10,13 @@
   ],
   "author": "Tony Jin<jsveron23@gmail.com>",
   "license": "MIT",
+  "type": "module",
   "bin": {
     "v23cc": "./bin/install.js"
   },
   "files": [
     "bin/",
+    "src/",
     "commands/",
     "mcp/",
     "README.md",
