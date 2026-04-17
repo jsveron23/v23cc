@@ -11,9 +11,15 @@ export function readConfig() {
   }
 }
 
+export function writeJsonAtomic(filePath, data) {
+  const tmp = filePath + '.tmp';
+  fs.mkdirSync(path.dirname(filePath), { recursive: true });
+  fs.writeFileSync(tmp, JSON.stringify(data, null, 2) + '\n', 'utf8');
+  fs.renameSync(tmp, filePath);
+}
+
 export function writeConfig(d) {
-  fs.mkdirSync(path.dirname(CONFIG_PATH), { recursive: true });
-  fs.writeFileSync(CONFIG_PATH, JSON.stringify(d, null, 2) + '\n', 'utf8');
+  writeJsonAtomic(CONFIG_PATH, d);
 }
 
 export function readScopes() {
@@ -28,8 +34,9 @@ export function writeScopes(scopes) {
 }
 
 export function getScopeKey(targetDir) {
-  if (targetDir === GLOBAL_COMMANDS_DIR) return { type: 'global' };
-  return { type: 'local', path: path.dirname(path.dirname(targetDir)) };
+  const normalized = path.resolve(targetDir);
+  if (normalized === path.resolve(GLOBAL_COMMANDS_DIR)) return { type: 'global' };
+  return { type: 'local', path: path.dirname(path.dirname(normalized)) };
 }
 
 export function scopeMatches(a, b) {
