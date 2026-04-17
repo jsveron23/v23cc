@@ -10,13 +10,13 @@ jobs:
     name: Publish to npm
     runs-on: ubuntu-latest
     permissions:
-      id-token: write      # required for npm Trusted Publishing (OIDC)
+      id-token: write # required for npm Trusted Publishing (OIDC)
       contents: read
     steps:
       - name: Checkout
         uses: actions/checkout@v4
         with:
-          fetch-depth: 0   # needed so merge-base can see main history
+          fetch-depth: 0 # needed so merge-base can see main history
 
       - name: Verify tag is on main
         run: |
@@ -43,3 +43,5 @@ jobs:
 
       - name: Publish
         run: npm publish --provenance --access public
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
